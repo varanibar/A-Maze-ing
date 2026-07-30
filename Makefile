@@ -1,8 +1,9 @@
 ENTRY = a_maze_ing.py
 CONFIG = config.txt
+DISPLAY = display.py
 
 install:
-	pip install flake8 mypy
+	pip install flake8 mypy curses
 run:
 	python3 $(ENTRY) $(CONFIG)
 venv:
@@ -16,4 +17,8 @@ lint:
 	mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 lint-strict:
 	flake8 . mypy . --strict
-.PHONY: install, run, venv, debug, clean, lint, lint strict
+
+display:
+	python3 $(DISPLAY)
+
+.PHONY: install, run, venv, debug, clean, lint, lint strict, display
