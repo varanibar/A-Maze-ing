@@ -76,12 +76,15 @@ class MainScreen(Display):
         position_x = int((x - len(title))/2 - 0.5)
         self.screen.addstr(position_y, position_x, title)
         self.screen.refresh()
-        self.screen.getch()
+        time.sleep(1)
 
 def main(stdscr: curses.window):
     screen = MainScreen(stdscr)
-    options: list[str] = ["Generate maze", "Quit programmmmmmmmmmmmmm"]
-    main_menu = MenuBox(stdscr, options)
+    options_main_menu: list[str] = ["Choose an option:", "", "g: Generate maze", "q: Quit program"]
+    main_menu = MenuBox(stdscr, options_main_menu)
+    stdscr.clear()
+    options_maze_menu: list[str] = ["g: Generate maze"]
+    maze_menu = MenuBox(stdscr, options_maze_menu)
 
 # def main(screen: curses.window):
 #     screen.border()
