@@ -22,15 +22,19 @@ def create_background(screen: curses.window) -> None:
     h, w = screen.getmaxyx()
     text = "Welcome to A-Maze-ing!"
     x = w//2 - len(text)//2
-    screen.addstr(1, x, text)
+
     curses.curs_set(0)
     screen.bkgd(" ", curses.color_pair(1))
     screen.border()
+    screen.addstr(1, x, text)
     screen.refresh()
 
 
 def print_menu(window: curses.window, menu: list[str], selected_row_idx: int) -> None:
     h, w = window.getmaxyx()
+
+    window.border()
+
     for idx, option in enumerate(menu):
         x = w//2 - len(option)//2
         y = h//2 - len(menu)//2 + idx
@@ -38,24 +42,30 @@ def print_menu(window: curses.window, menu: list[str], selected_row_idx: int) ->
             window.addstr(y, x, option, curses.color_pair(2))
         else:
             window.addstr(y, x, option)
-        window.refresh()
+
+    window.refresh()
 
 
 def handle_user_input(window: curses.window, menu: list[str]):
     selected_row_idx = 0
-    print_menu(window, menu, selected_row_idx)
+
     while True:
-        key = window.getch()
         window.clear()
-        if key == curses.KEY_UP:
-            window.addstr(1,0,"UP")
-        elif key == curses.KEY_DOWN:
-            window.addstr(1,0,"DOWN")
-        elif key == curses.KEY_ENTER or key == 10:
-            window.addstr(1,0,"ENTER")
-        else:
-            window.addstr(1,0, f"{key}")
-        window.refresh()
+        print_menu(window, menu, selected_row_idx)
+
+        key = window.getch()
+
+        if key == curses.KEY_UP and selected_row_idx > 0:
+            selected_row_idx -= 1
+
+        elif key == curses.KEY_DOWN and selected_row_idx < len(menu) - 1:
+            selected_row_idx += 1
+
+        elif key in (curses.KEY_ENTER, 10, 13):
+            window.clear()
+            window.addstr(0, 0, f"You pressed {menu[selected_row_idx]}")
+            window.refresh()
+            window.getch()
 
 
 class Window():
