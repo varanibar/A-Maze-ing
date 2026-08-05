@@ -1,5 +1,4 @@
 import curses
-import sys
 import time
 
 
@@ -32,7 +31,7 @@ def create_background(screen: curses.window) -> None:
 class MenuWindow():
     def __init__(self, menu: list[str], y: int, x: int) -> None:
         self.menu = menu
-        self.selected_row_idx = 0
+        self.selected_row_idx = 1
         self.h, self.w = self.get_size()
         self.create_window(y, x)
 
@@ -73,7 +72,7 @@ class MenuWindow():
 
             key = self.window.getch()
 
-            if key == curses.KEY_UP and self.selected_row_idx > 0:
+            if key == curses.KEY_UP and self.selected_row_idx > 1:
                 self.selected_row_idx -= 1
 
             elif key == curses.KEY_DOWN and self.selected_row_idx < len(self.menu) - 1:
@@ -81,53 +80,77 @@ class MenuWindow():
 
             elif key in (curses.KEY_ENTER, 10, 13):
                 return self.menu[self.selected_row_idx]
-                # self.window.clear()
-                # text = f"You pressed {self.menu[self.selected_row_idx]}"
-                # self.window.addstr(0, 1, text)
-                # self.window.refresh()
-                # if self.menu[self.selected_row_idx] == "Quit":
-                #     text = "see ya! :("
-                #     self.window.addstr(1, self.x_pos(text), text)
-                #     self.window.refresh()
-                #     time.sleep(2)
-                #     sys.exit(0)
-                # elif self.menu[self.selected_row_idx] == "Generate maze":
-                #     break
-                # else:
-                #     self.window.getch()
 
-            elif key in (curses.KEY_BACKSPACE, 127):
+            elif key == 27:
                 return None
 
-def handle_selection(menu: curses.window, selection: str, middle_y: int, middle_x: int):
-    if selection == "Quit":
-        text = "see ya!"
-        menu.addstr(1, 1, text)
-        menu.refresh()
-        time.sleep(2)
-        sys.exit(0)
-    elif selection == "None":
-        sys.exit(0)
-    elif selection == "Generate maze":
-        options_maze: list[str] = ["Solve", "Regenerate", "Write to file", "Return", "Quit"]
-        maze_menu = MenuWindow(options_maze, middle_y//5, middle_x)
-        selection = maze_menu.handle_user_input()
-        maze_menu.window.clear()
-        maze_menu.window.refresh()
-        maze_menu.window.getch()
+
+def quit_action(stdscr: curses.window) -> None:
+    text = "see ya!"
+    y, x = stdscr.getmaxyx()
+
+    stdscr.clear()
+    stdscr.bkgd(" ", curses.color_pair(1))
+    stdscr.border()
+    stdscr.addstr(y // 2, x // 2 - len(text) // 2, text)
+    stdscr.refresh()
+
+    time.sleep(1)
 
 def run_display(stdscr: curses.window) -> None:
     initialize_colors()
-    options_main_menu: list[str] = ["Generate maze", "Quit"]
     create_background(stdscr)
+
     y, x = stdscr.getmaxyx()
-    middle_y = y//2
-    middle_x = x//2
-    main_menu = MenuWindow(options_main_menu, middle_y, middle_x)
-    selection = main_menu.handle_user_input()
-    main_menu.window.clear()
-    main_menu.window.refresh()
-    handle_selection(main_menu.window, selection, middle_y, middle_x)
+    mid_y = y//2
+    mid_x = x//2
+
+    main_opt: list[str] = [
+        "Actions:",
+        "Generate maze",
+        "Quit"
+        ]
+
+    maze_opt: list[str] = [
+    "Actions:",
+    "Solve",
+    "Regenerate",
+    "Write to file",
+    "Return",
+    "Quit"
+    ]
+
+    main_menu = MenuWindow(main_opt, mid_y, mid_x)
+    while True:
+        main_selection = main_menu.handle_user_input()
+        main_menu.window.clear()
+        main_menu.window.refresh()
+
+        if main_selection is None or main_selection == "Quit":
+            quit_action(stdscr)
+            return
+
+        if main_selection == "Generate maze":
+            maze_menu = MenuWindow(maze_opt, mid_y//2, mid_x)
+            while True:
+                maze_selection = maze_menu.handle_user_input()
+
+                if maze_selection == "Solve":
+                    pass
+                elif maze_selection == "Regenerate":
+                    pass
+                elif maze_selection == "Write to file":
+                    pass
+                elif maze_selection == "Return":
+                    maze_menu.window.clear()
+                    maze_menu.window.refresh()
+                    del maze_menu
+                    stdscr.touchwin()
+                    stdscr.refresh()
+                    break
+                elif maze_selection is None or maze_selection == "Quit":
+                    quit_action(stdscr)
+                    return
 
 
 
