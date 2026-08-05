@@ -17,7 +17,6 @@ def initialize_colors() -> None:
         curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_YELLOW)
 
 
-
 def create_background(screen: curses.window) -> None:
     h, w = screen.getmaxyx()
     text = "Welcome to A-Maze-ing!"
@@ -30,79 +29,106 @@ def create_background(screen: curses.window) -> None:
     screen.refresh()
 
 
-def print_menu(window: curses.window, menu: list[str], selected_row_idx: int) -> None:
-    h, w = window.getmaxyx()
-
-    window.border()
-
-    for idx, option in enumerate(menu):
-        x = w//2 - len(option)//2
-        y = h//2 - len(menu)//2 + idx
-        if idx == selected_row_idx:
-            window.addstr(y, x, option, curses.color_pair(2))
-        else:
-            window.addstr(y, x, option)
-
-    window.refresh()
-
-
-def handle_user_input(window: curses.window, menu: list[str]):
-    selected_row_idx = 0
-
-    while True:
-        window.clear()
-        print_menu(window, menu, selected_row_idx)
-
-        key = window.getch()
-
-        if key == curses.KEY_UP and selected_row_idx > 0:
-            selected_row_idx -= 1
-
-        elif key == curses.KEY_DOWN and selected_row_idx < len(menu) - 1:
-            selected_row_idx += 1
-
-        elif key in (curses.KEY_ENTER, 10, 13):
-            window.clear()
-            window.addstr(0, 0, f"You pressed {menu[selected_row_idx]}")
-            window.refresh()
-            window.getch()
-
-
-class Window():
-    def __init__(self, options: list[str], y: int, x: int) -> None:
-        self.options = options
+class MenuWindow():
+    def __init__(self, menu: list[str], y: int, x: int) -> None:
+        self.menu = menu
+        self.selected_row_idx = 0
         self.h, self.w = self.get_size()
         self.create_window(y, x)
 
     def get_size(self) -> tuple[int, int]:
-        height: int = len(self.options) + 4
-        width: int = max([len(row) for row in self.options]) + 6
+        height: int = len(self.menu) + 4
+        width: int = max(len(row) for row in self.menu) + 6
         return (height, width)
 
-    def create_window(self, y , x) -> None:
-        self.box = curses.newwin(self.h, self.w, y - self.h//2, x - self.w //2)
-        self.box.bkgd(" ", curses.color_pair(1))
-        self.box.keypad(True)
-        self.box.border()
-        self.box.refresh()
+    def create_window(self, y: int, x: int) -> None:
+        self.window = curses.newwin(self.h, self.w, y - self.h//2, x - self.w//2)
+        self.window.bkgd(" ", curses.color_pair(1))
+        self.window.keypad(True)
+        self.window.border()
+        self.window.refresh()
 
+    def x_pos(self, text: str) -> int:
+        x = self.w//2 - len(text)//2
+        return x
+
+    def print_menu(self) -> None:
+
+        self.window.border()
+
+        for idx, row in enumerate(self.menu):
+            x = self.x_pos(row)
+            y = self.h//2 - len(self.menu)//2 + idx
+            if idx == self.selected_row_idx:
+                self.window.addstr(y, x, row, curses.color_pair(2))
+            else:
+                self.window.addstr(y, x, row)
+
+        self.window.refresh()
+
+    def handle_user_input(self) -> str | None:
+        while True:
+            self.window.clear()
+            self.print_menu()
+
+            key = self.window.getch()
+
+            if key == curses.KEY_UP and self.selected_row_idx > 0:
+                self.selected_row_idx -= 1
+
+            elif key == curses.KEY_DOWN and self.selected_row_idx < len(self.menu) - 1:
+                self.selected_row_idx += 1
+
+            elif key in (curses.KEY_ENTER, 10, 13):
+                return self.menu[self.selected_row_idx]
+                # self.window.clear()
+                # text = f"You pressed {self.menu[self.selected_row_idx]}"
+                # self.window.addstr(0, 1, text)
+                # self.window.refresh()
+                # if self.menu[self.selected_row_idx] == "Quit":
+                #     text = "see ya! :("
+                #     self.window.addstr(1, self.x_pos(text), text)
+                #     self.window.refresh()
+                #     time.sleep(2)
+                #     sys.exit(0)
+                # elif self.menu[self.selected_row_idx] == "Generate maze":
+                #     break
+                # else:
+                #     self.window.getch()
+
+            elif key in (curses.KEY_BACKSPACE, 127):
+                return None
+
+def handle_selection(menu: curses.window, selection: str, middle_y: int, middle_x: int):
+    if selection == "Quit":
+        text = "see ya!"
+        menu.addstr(1, 1, text)
+        menu.refresh()
+        time.sleep(2)
+        sys.exit(0)
+    elif selection == "None":
+        sys.exit(0)
+    elif selection == "Generate maze":
+        options_maze: list[str] = ["Solve", "Regenerate", "Write to file", "Return", "Quit"]
+        maze_menu = MenuWindow(options_maze, middle_y//5, middle_x)
+        selection = maze_menu.handle_user_input()
+        maze_menu.window.clear()
+        maze_menu.window.refresh()
+        maze_menu.window.getch()
 
 def run_display(stdscr: curses.window) -> None:
     initialize_colors()
-    options: list[str] = ["Generate maze", "Quit"]
+    options_main_menu: list[str] = ["Generate maze", "Quit"]
     create_background(stdscr)
     y, x = stdscr.getmaxyx()
     middle_y = y//2
     middle_x = x//2
-    main_menu = Window(options, middle_y, middle_x)
-    # print_menu(main_menu.box, options, 1)
-    # time.sleep(2)
-    handle_user_input(main_menu.box, options)
-    # options_maze: list[str] = ["Solve", "Regenerate", "Write to file", "Return", "Quit"]
-    # maze_menu = Window(options_maze, middle_y, middle_x)
-    # print_menu(maze_menu.box, options_maze)
-    # handle_user_input(maze_menu.box)
-    # maze_window.box.getch()
+    main_menu = MenuWindow(options_main_menu, middle_y, middle_x)
+    selection = main_menu.handle_user_input()
+    main_menu.window.clear()
+    main_menu.window.refresh()
+    handle_selection(main_menu.window, selection, middle_y, middle_x)
+
 
 
 
