@@ -1,6 +1,8 @@
 import curses
 import time
+from typing import Literal
 
+MenuPosition = Literal ["top", "center", "left"]
 
 def initialize_colors() -> None:
     # Stablishing style of the terminal
@@ -29,34 +31,46 @@ def create_background(screen: curses.window) -> None:
 
 
 class MenuWindow():
-    def __init__(self, menu: list[str], y: int, x: int) -> None:
+    def __init__(self, menu: list[str], position: MenuPosition, screen: curses.window) -> None:
         self.menu = menu
+        self.position = position
         self.selected_row_idx = 1
         self.h, self.w = self.get_size()
-        self.create_window(y, x)
+        self.top, self.left = self.calculate_position(screen)
+        self.create_window()
 
     def get_size(self) -> tuple[int, int]:
         height: int = len(self.menu) + 4
         width: int = max(len(row) for row in self.menu) + 6
         return (height, width)
 
-    def create_window(self, y: int, x: int) -> None:
-        self.window = curses.newwin(self.h, self.w, y - self.h//2, x - self.w//2)
+    def calculate_position(self, screen: curses.window) -> tuple[int, int]:
+        y,x = screen.getmaxyx()
+        if self.position == "center":
+            top = y//2 - self.h//2
+            left = x//2 - self.w//2
+        elif self.position == "top":
+            top = 2
+            left = x//2 - self.w//2
+        elif self.position == "left":
+            top = y//2 - self.h//2
+            left = 2
+        return (top, left)
+
+    def create_window(self) -> None:
+        self.window = curses.newwin(self.h, self.w, self.top, self.left)
         self.window.bkgd(" ", curses.color_pair(1))
         self.window.keypad(True)
         self.window.border()
         self.window.refresh()
 
-    def x_pos(self, text: str) -> int:
-        x = self.w//2 - len(text)//2
-        return x
 
     def print_menu(self) -> None:
 
         self.window.border()
 
         for idx, row in enumerate(self.menu):
-            x = self.x_pos(row)
+            x = self.w//2 - len(row)//2
             y = self.h//2 - len(self.menu)//2 + idx
             if idx == self.selected_row_idx:
                 self.window.addstr(y, x, row, curses.color_pair(2))
@@ -101,10 +115,6 @@ def run_display(stdscr: curses.window) -> None:
     initialize_colors()
     create_background(stdscr)
 
-    y, x = stdscr.getmaxyx()
-    mid_y = y//2
-    mid_x = x//2
-
     main_opt: list[str] = [
         "Actions:",
         "Generate maze",
@@ -120,7 +130,7 @@ def run_display(stdscr: curses.window) -> None:
     "Quit"
     ]
 
-    main_menu = MenuWindow(main_opt, mid_y, mid_x)
+    main_menu = MenuWindow(main_opt, "center", stdscr)
     while True:
         main_selection = main_menu.handle_user_input()
         main_menu.window.clear()
@@ -131,7 +141,7 @@ def run_display(stdscr: curses.window) -> None:
             return
 
         if main_selection == "Generate maze":
-            maze_menu = MenuWindow(maze_opt, mid_y//2, mid_x)
+            maze_menu = MenuWindow(maze_opt, "left", stdscr)
             while True:
                 maze_selection = maze_menu.handle_user_input()
 
