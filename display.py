@@ -17,7 +17,7 @@ def initialize_colors(
         curses.init_color(11, 882, 682, 86)
         curses.init_pair(1, 11, 10)
         curses.init_pair(2, 10, 11)
-        # curses.init_pair(3, curses.COLOR_GREEN, 10)
+        curses.init_pair(3, curses.COLOR_GREEN, 10)
     else:
         curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_BLACK)
         curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_YELLOW)
@@ -307,13 +307,14 @@ def run_display(
         main_selection = main_menu.handle_user_input()
         main_menu.window.clear()
         main_menu.window.refresh()
+        color_style = curses.color_pair(1)
 
         if main_selection is None or main_selection == "Quit":
             quit_action(stdscr)
             return
 
         if main_selection == "Generate maze":
-            color_style = curses.color_pair(1)
+
             maze_menu = MenuWindow(maze_opt, "left", stdscr)
             maze = MazeWindow(rendered_h, rendered_w, maze_menu, stdscr)
 
@@ -329,6 +330,11 @@ def run_display(
                 elif maze_selection == "Regenerate":
                     pass
                 elif maze_selection == "Change wall color":
+                    color_style = curses.color_pair(3)
+                    y = 0
+                    for y, line in enumerate(maze_rows):
+                        maze.window.addstr(y + 1, 1, line, color_style)
+                        maze.window.refresh()
                     pass
                 elif maze_selection == "Return":
                     maze_menu.window.clear()
