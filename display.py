@@ -1,13 +1,15 @@
 import curses
 import time
-import sys
 from typing import Literal
+from parser import Config
 
 
 MenuPosition = Literal["center", "left"]
 
 
-def initialize_colors() -> None:
+def initialize_colors(
+                    ) -> None:
+
     curses.start_color()
 
     if curses.can_change_color():
@@ -15,13 +17,18 @@ def initialize_colors() -> None:
         curses.init_color(11, 882, 682, 86)
         curses.init_pair(1, 11, 10)
         curses.init_pair(2, 10, 11)
+        # curses.init_pair(3, curses.COLOR_GREEN, 10)
     else:
         curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_BLACK)
         curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_YELLOW)
 
 
-def create_background(screen: curses.window) -> None:
+def create_background(
+                    screen: curses.window
+                    ) -> None:
+
     h, w = screen.getmaxyx()
+
     text_top = "Welcome to A-Maze-ing!"
     text_bottom = "Project made by varaniba and pride-ol"
     x_text_top = w//2 - len(text_top)//2
@@ -37,11 +44,11 @@ def create_background(screen: curses.window) -> None:
 
 class MenuWindow():
     def __init__(
-            self,
-            menu: list[str],
-            position: MenuPosition,
-            screen: curses.window
-            ) -> None:
+                self,
+                menu: list[str],
+                position: MenuPosition,
+                screen: curses.window
+                ) -> None:
 
         self.menu = menu
         self.position = position
@@ -51,13 +58,23 @@ class MenuWindow():
         self.create_window()
 
     @staticmethod
-    def calculate_size(menu: list[str]) -> tuple[int, int]:
-        inner_padding = 4
-        height: int = len(menu) + inner_padding
-        width: int = max(len(row) for row in menu) + inner_padding + inner_padding//2
+    def calculate_size(
+                    menu: list[str]
+                    ) -> tuple[int, int]:
+
+        horizontal_padding = 4
+        vertical_padding = 6
+
+        height: int = len(menu) + horizontal_padding
+        width: int = max(len(row) for row in menu) + vertical_padding
+
         return (height, width)
 
-    def calculate_position(self, screen: curses.window) -> tuple[int, int, int]:
+    def calculate_position(
+                        self,
+                        screen: curses.window
+                        ) -> tuple[int, int, int]:
+
         screen_h, screen_w = screen.getmaxyx()
         padding = 2
 
@@ -80,10 +97,14 @@ class MenuWindow():
             or right + padding > screen_w
             ):
             raise ValueError("Terminal is too small to display the program")
+
         else:
             return (top, left, right)
 
-    def create_window(self) -> None:
+    def create_window(
+                        self
+                        ) -> None:
+
         self.window = curses.newwin(self.h, self.w, self.top, self.left)
 
         self.window.bkgd(" ", curses.color_pair(1))
@@ -91,7 +112,10 @@ class MenuWindow():
         self.window.border()
         self.window.refresh()
 
-    def print_menu(self) -> None:
+    def print_menu(
+                    self
+                    ) -> None:
+
         self.window.border()
 
         for idx, row in enumerate(self.menu):
@@ -105,7 +129,10 @@ class MenuWindow():
 
         self.window.refresh()
 
-    def handle_user_input(self) -> str | None:
+    def handle_user_input(
+                        self
+                        ) -> str | None:
+
         while True:
             self.window.clear()
             self.print_menu()
@@ -124,20 +151,35 @@ class MenuWindow():
             elif key == 27:
                 return None
 
+
 class MazeWindow():
-    def __init__(self, maze_h: int, maze_w: int, maze_menu: curses.window, screen: curses.window) -> None:
-        self.h = maze_h
-        self.w = maze_w
+
+    def __init__(
+            self,
+            maze_h: int,
+            maze_w: int,
+            maze_menu: curses.window,
+            screen: curses.window
+            ) -> None:
+
+        self.h = maze_h + 2
+        self.w = maze_w + 2
         self.top, self.left, self.right = self.calculate_position(maze_menu, screen)
         self.create_window()
 
-    def calculate_position(self, maze_menu: curses.window, screen: curses.window) -> tuple[int, int, int]:
+    def calculate_position(
+                        self,
+                        maze_menu: curses.window,
+                        screen: curses.window
+                        ) -> tuple[int, int, int]:
+
         screen_h, screen_w = screen.getmaxyx()
         padding = 1
 
         top = screen_h//2 - self.h//2
         left = maze_menu.right + screen_w//2 - maze_menu.right//2 - self.w//2 - padding
         right = left + self.w
+
         if (
             top < 0
             or left < 0
@@ -148,21 +190,25 @@ class MazeWindow():
             ):
             message = f"top = {top} < 0\nor left = {left} < 0\nor right = {right} > screen_w = {screen_w}\nor top = {top} + h= {self.h} >  screen_h = {screen_h}\nor  left = {left} + w = {self.w }> screen_w = {screen_w}\nor right = {right} + padding = {padding} > screen_w = {screen_w}"
             raise ValueError(f"Limits surpassed\n{message}")
+
         else:
             return (top, left, right)
 
-    def create_window(self) -> None:
+    def create_window(
+                    self
+                    ) -> None:
+
         self.window = curses.newwin(self.h, self.w, self.top, self.left)
 
         self.window.bkgd(" ", curses.color_pair(1))
         self.window.keypad(True)
         self.window.border()
-        self.window.addstr(1, 1, f"h = {self.h}")
-        self.window.addstr(2, 1, f"w = {self.w}")
-
         self.window.refresh()
 
-def quit_action(stdscr: curses.window) -> None:
+def quit_action(
+                stdscr: curses.window
+                ) -> None:
+
     text = "see ya!"
     y, x = stdscr.getmaxyx()
 
@@ -174,29 +220,46 @@ def quit_action(stdscr: curses.window) -> None:
 
     time.sleep(1)
 
-def validating_terminal_size(screen: curses.window,  maze_opt: list[str], maze_h: int, maze_w: int):
+
+def validating_terminal_size(
+                            screen: curses.window,
+                            config_data: Config,
+                            maze_string: str,
+                            maze_opt: list[str],
+                            ) -> None:
+
     screen_h, screen_w = screen.getmaxyx()
     maze_menu_h, maze_menu_w = MenuWindow.calculate_size(maze_opt)
-    outer_padding = 2
+    outer_padding = 4
+    maze_rows = maze_string.splitlines()
+    rendered_h = len(maze_rows)
+    rendered_w = max(len(line) for line in maze_rows)
 
-    required_h = maze_h + outer_padding
-    required_w = maze_w + outer_padding * 2 + maze_menu_w + 1
-    max_maze_h = screen_h - outer_padding
-    max_maze_w = screen_w - outer_padding * 2 - maze_menu_w - 1
+    required_h = rendered_h + outer_padding
+    required_w = rendered_w + outer_padding * 2 + maze_menu_w + 2
+    max_rendered_h = screen_h - outer_padding
+    max_rendered_w = screen_w - outer_padding * 2 - maze_menu_w
+    max_input_h = max_rendered_h // 2 - 1
+    max_input_w = max_rendered_w // 4 - 1
 
     if required_h > screen_h or required_w > screen_w:
 
         message_1 = f"\nTerminal:\n  Current size:   h = {screen_h}   and    w = {screen_w}\n"
         message_2 = f"  Required size:  h = {required_h}   and    w = {required_w}"
 
-        message_3 = f"\nMaze:\n  Current size:                h = {maze_h}   and    w = {maze_w}\n"
-        message_4 = f"  Max size for this terminal:  h = {max_maze_h}   and    w = {max_maze_w}\n"
+        message_3 = f"\nMaze:\n  Current size:                h = {config_data.height}   and    w = {config_data.width}\n"
+        message_4 = f"  Max size for this terminal:  h = {max_input_h}   and    w = {max_input_w}\n"
         complete_message = message_1 + message_2 + message_3 + message_4
 
         raise ValueError(f"Terminal too small. Change terminal size or change maze dimensions.\n{complete_message}")
 
 
-def run_display(stdscr: curses.window) -> None:
+def run_display(
+                stdscr: curses.window,
+                config_data: Config,
+                maze_string: str
+                ) -> None:
+
     main_opt: list[str] = [
         "Actions:",
         "Generate maze",
@@ -207,18 +270,39 @@ def run_display(stdscr: curses.window) -> None:
         "Actions:",
         "Solve",
         "Regenerate",
-        "Write to file",
+        "Change wall color",
         "Return",
         "Quit"
         ]
 
-    # maze_h, maze_w = (70, 270)
-    maze_h, maze_w = (70, 101)
-    validating_terminal_size(stdscr, maze_opt, maze_h, maze_w)
+
+    '''
+    1. Maze logical size
+   width = number of maze cells
+    each maze cell takes 4 terminal columns horizontally
+   height = number of maze cells
+    each cell takes 2 terminal rows vertically
+
+    2. Renderer grid size
+    grid_width = width * 2 + 1
+    grid_height = height * 2 + 1
+
+    3. Actual curses/terminal size
+    rendered_width = width * 4 + 1
+        number of terminal columns
+    rendered_height = height * 2 + 1
+        number of terminal rows
+    '''
+
+    validating_terminal_size(stdscr, config_data, maze_string, maze_opt)
     initialize_colors()
     create_background(stdscr)
 
+    maze_rows = maze_string.splitlines()
+    rendered_h = len(maze_rows)
+    rendered_w = max(len(line) for line in maze_rows)
     main_menu = MenuWindow(main_opt, "center", stdscr)
+
     while True:
         main_selection = main_menu.handle_user_input()
         main_menu.window.clear()
@@ -229,8 +313,14 @@ def run_display(stdscr: curses.window) -> None:
             return
 
         if main_selection == "Generate maze":
+            color_style = curses.color_pair(1)
             maze_menu = MenuWindow(maze_opt, "left", stdscr)
-            maze = MazeWindow(maze_h, maze_w, maze_menu, stdscr)
+            maze = MazeWindow(rendered_h, rendered_w, maze_menu, stdscr)
+
+            for y, line in enumerate(maze_rows):
+                maze.window.addstr(y + 1, 1, line, color_style)
+                maze.window.refresh()
+
             while True:
                 maze_selection = maze_menu.handle_user_input()
 
@@ -238,7 +328,7 @@ def run_display(stdscr: curses.window) -> None:
                     pass
                 elif maze_selection == "Regenerate":
                     pass
-                elif maze_selection == "Write to file":
+                elif maze_selection == "Change wall color":
                     pass
                 elif maze_selection == "Return":
                     maze_menu.window.clear()
@@ -251,23 +341,22 @@ def run_display(stdscr: curses.window) -> None:
                     quit_action(stdscr)
                     return
 
-def start_display() -> None:
+
+def start_display(
+                config_data: Config,
+                maze_string: str
+                ) -> None:
+
     try:
-        curses.wrapper(run_display)
+        curses.wrapper(run_display, config_data, maze_string)
+
     except ValueError as err:
-        print(f"Caught {err.__class__.__name__}: {err}")
+        raise ValueError(f"{err}")
 
 
-
-    """
-    Python executes a module's top-level code from top to bottom when the file
-    is imported. This guard ensures that curses starts only when this file is
-    run directly, not when its classes or functions are imported elsewhere.
-    """
-
-
-if __name__ == "__main__":
-    start_display()
+# if __name__ == "__main__":
+#     maze_string = "hello"
+#     start_display(maze_string)
 
     """
     The wrapper:
