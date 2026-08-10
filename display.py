@@ -52,12 +52,14 @@ class MenuWindow():
 
     @staticmethod
     def calculate_size(menu: list[str]) -> tuple[int, int]:
-        height: int = len(menu) + 4
-        width: int = max(len(row) for row in menu) + 6
+        inner_padding = 4
+        height: int = len(menu) + inner_padding
+        width: int = max(len(row) for row in menu) + inner_padding + inner_padding//2
         return (height, width)
 
     def calculate_position(self, screen: curses.window) -> tuple[int, int, int]:
         screen_h, screen_w = screen.getmaxyx()
+        padding = 2
 
         if self.position == "center":
             top = screen_h//2 - self.h//2
@@ -66,14 +68,16 @@ class MenuWindow():
 
         elif self.position == "left":
             top = screen_h//2 - self.h//2
-            left = 2
-            right = left + self.w + left
+            left = padding
+            right = left + self.w
 
         if (
             top < 0
             or left < 0
+            or right > screen_w
             or top + self.h > screen_h
             or left + self.w > screen_w
+            or right + padding > screen_w
             ):
             raise ValueError("Terminal is too small to display the program")
         else:
@@ -124,19 +128,28 @@ class MazeWindow():
     def __init__(self, maze_h: int, maze_w: int, maze_menu: curses.window, screen: curses.window) -> None:
         self.h = maze_h
         self.w = maze_w
-        self.top, self.left = self.calculate_position(maze_menu, screen)
+        self.top, self.left, self.right = self.calculate_position(maze_menu, screen)
         self.create_window()
 
-    def calculate_position(self, maze_menu: curses.window, screen: curses.window) -> tuple[int, int]:
-        padding = 2
-
+    def calculate_position(self, maze_menu: curses.window, screen: curses.window) -> tuple[int, int, int]:
         screen_h, screen_w = screen.getmaxyx()
-        available_h = screen_h - padding
-        available_w = screen_w - maze_menu.right - padding
+        padding = 1
 
-        top = padding//2 + available_h//2 - self.h//2
-        left = maze_menu.right + available_w//2 - self.w//2
-        return (top, left)
+        top = screen_h//2 - self.h//2
+        left = maze_menu.right + screen_w//2 - maze_menu.right//2 - self.w//2 - padding
+        right = left + self.w
+        if (
+            top < 0
+            or left < 0
+            or right > screen_w
+            or top + self.h > screen_h
+            or left + self.w > screen_w
+            or right + padding > screen_w
+            ):
+            message = f"top = {top} < 0\nor left = {left} < 0\nor right = {right} > screen_w = {screen_w}\nor top = {top} + h= {self.h} >  screen_h = {screen_h}\nor  left = {left} + w = {self.w }> screen_w = {screen_w}\nor right = {right} + padding = {padding} > screen_w = {screen_w}"
+            raise ValueError(f"Limits surpassed\n{message}")
+        else:
+            return (top, left, right)
 
     def create_window(self) -> None:
         self.window = curses.newwin(self.h, self.w, self.top, self.left)
@@ -164,13 +177,24 @@ def quit_action(stdscr: curses.window) -> None:
 def validating_terminal_size(screen: curses.window,  maze_opt: list[str], maze_h: int, maze_w: int):
     screen_h, screen_w = screen.getmaxyx()
     maze_menu_h, maze_menu_w = MenuWindow.calculate_size(maze_opt)
+    outer_padding = 2
 
-    padding = 2
-    required_h = maze_h + padding
-    required_w = maze_menu_w + maze_w + padding
+    required_h = maze_h + outer_padding
+    required_w = maze_w + outer_padding * 2 + maze_menu_w + 1
+    max_maze_h = screen_h - outer_padding
+    max_maze_w = screen_w - outer_padding * 2 - maze_menu_w - 1
 
     if required_h > screen_h or required_w > screen_w:
-        raise ValueError("Terminal too small")
+
+        message_1 = f"\nTerminal:\n  Current size:   h = {screen_h}   and    w = {screen_w}\n"
+        message_2 = f"  Required size:  h = {required_h}   and    w = {required_w}"
+
+        message_3 = f"\nMaze:\n  Current size:                h = {maze_h}   and    w = {maze_w}\n"
+        message_4 = f"  Max size for this terminal:  h = {max_maze_h}   and    w = {max_maze_w}\n"
+        complete_message = message_1 + message_2 + message_3 + message_4
+
+        raise ValueError(f"Terminal too small. Change terminal size or change maze dimensions.\n{complete_message}")
+
 
 def run_display(stdscr: curses.window) -> None:
     main_opt: list[str] = [
@@ -188,7 +212,8 @@ def run_display(stdscr: curses.window) -> None:
         "Quit"
         ]
 
-    maze_h, maze_w = (59, 216)
+    # maze_h, maze_w = (70, 270)
+    maze_h, maze_w = (70, 101)
     validating_terminal_size(stdscr, maze_opt, maze_h, maze_w)
     initialize_colors()
     create_background(stdscr)
