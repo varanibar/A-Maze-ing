@@ -64,7 +64,7 @@ class Menu:
         return self.actions[self.selected_row_idx]
 
 
-class MenuWindow():
+class MenuPanel():
     def __init__(
                 self,
                 menu: Menu,
@@ -183,6 +183,10 @@ class MenuWindow():
             elif key == 27:
                 return None
 
+    def clear(self) -> None:
+        self.window.clear()
+        self.window.refresh()
+
 
 class MazeWindow():
 
@@ -190,18 +194,18 @@ class MazeWindow():
             self,
             maze_h: int,
             maze_w: int,
-            maze_menu_win: MenuWindow,
+            maze_panel: MenuPanel,
             screen: curses.window
             ) -> None:
 
         self.h = maze_h + 2
         self.w = maze_w + 2
-        self.top, self.left, self.right = self.calculate_position(maze_menu_win, screen)
+        self.top, self.left, self.right = self.calculate_position(maze_panel, screen)
         self.create_window()
 
     def calculate_position(
                         self,
-                        maze_menu_win: MenuWindow,
+                        maze_panel: MenuPanel,
                         screen: curses.window
                         ) -> tuple[int, int, int]:
 
@@ -209,7 +213,7 @@ class MazeWindow():
         padding = 1
 
         top = screen_h//2 - self.h//2
-        left = maze_menu_win.right + screen_w//2 - maze_menu_win.right//2 - self.w//2 - padding
+        left = maze_panel.right + screen_w//2 - maze_panel.right//2 - self.w//2 - padding
         right = left + self.w
 
         if (
@@ -248,7 +252,7 @@ def validating_terminal_size(
 
     screen_h, screen_w = screen.getmaxyx()
 
-    maze_menu_h, maze_menu_w = MenuWindow.calculate_size(header, actions)
+    maze_menu_h, maze_menu_w = MenuPanel.calculate_size(header, actions)
     outer_padding = 4
     maze_rows = maze_string.splitlines()
     rendered_h = len(maze_rows)
@@ -321,13 +325,12 @@ def run_display(
     rendered_w = max(len(line) for line in maze_rows)
 
     main_menu = Menu(header, main_actions)
-    main_menu_win = MenuWindow(main_menu, "center", stdscr)
+    main_panel = MenuPanel(main_menu, "center", stdscr)
 
     while True:
-        selection = main_menu_win.handle_user_input()
+        selection = main_panel.handle_user_input()
 
-        main_menu_win.window.clear()
-        main_menu_win.window.refresh()
+        main_panel.clear()
         color_style = curses.color_pair(1)
 
         if selection is None or selection == "Quit":
@@ -336,15 +339,15 @@ def run_display(
 
         if selection == "Generate maze":
             maze_menu = Menu(header, maze_actions)
-            maze_menu_win = MenuWindow(maze_menu, "left", stdscr)
-            maze = MazeWindow(rendered_h, rendered_w, maze_menu_win, stdscr)
+            maze_panel = MenuPanel(maze_menu, "left", stdscr)
+            maze_win = MazeWindow(rendered_h, rendered_w, maze_panel, stdscr)
 
             for y, line in enumerate(maze_rows):
-                maze.window.addstr(y + 1, 1, line, color_style)
-                maze.window.refresh()
+                maze_win.window.addstr(y + 1, 1, line, color_style)
+                maze_win.window.refresh()
 
             while True:
-                maze_selection = maze_menu_win.handle_user_input()
+                maze_selection = maze_panel.handle_user_input()
 
                 if maze_selection == "Solve":
                     pass
@@ -354,11 +357,11 @@ def run_display(
                     # color_style = curses.color_pair(3)
                     # y = 0
                     # for y, line in enumerate(maze_rows):
-                    #     maze.window.addstr(y + 1, 1, line, color_style)
-                    #     maze.window.refresh()
+                    #     maze_win.window.addstr(y + 1, 1, line, color_style)
+                    #     maze_win.window.refresh()
                     pass
                 elif maze_selection == "Return":
-                    menu_actions.return_action(stdscr, maze_menu_win.window)
+                    menu_actions.return_action(stdscr, maze_panel.window)
                     break
                 elif maze_selection is None or maze_selection == "Quit":
                     menu_actions.quit_action(stdscr)
