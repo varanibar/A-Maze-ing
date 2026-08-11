@@ -321,11 +321,7 @@ def run_display(
                         maze.window.refresh()
                     pass
                 elif maze_selection == "Return":
-                    maze_menu.window.clear()
-                    maze_menu.window.refresh()
-                    del maze_menu
-                    stdscr.touchwin()
-                    stdscr.refresh()
+                    menu_actions.return_action(stdscr,maze_menu.window)
                     break
                 elif maze_selection is None or maze_selection == "Quit":
                     menu_actions.quit_action(stdscr)

@@ -15,3 +15,16 @@ def quit_action(
     stdscr.refresh()
 
     time.sleep(1)
+
+def return_action(
+                stdscr: curses.window,
+                window: curses.window
+                ) -> None:
+
+    window.clear()
+    window.refresh()
+    del window
+
+    stdscr.touchwin()
+    stdscr.refresh()
+
