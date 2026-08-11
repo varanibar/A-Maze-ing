@@ -1,3 +1,4 @@
+import time
 import curses
 from typing import Literal
 from parser import Config
@@ -40,32 +41,56 @@ def create_background(
     screen.addstr(h - 1, x_text_bottom, text_bottom)
     screen.refresh()
 
+class Menu:
+    def __init__(
+                self,
+                header: str,
+                actions: list[str]
+                ) -> None:
+
+        self.header = header
+        self.actions = actions
+        self.selected_row_idx = 0
+
+    def move_up(self) -> None:
+        if self.selected_row_idx > 0:
+            self.selected_row_idx -= 1
+
+    def move_down(self) -> None:
+        if self.selected_row_idx < len(self.actions) - 1:
+            self.selected_row_idx += 1
+
+    def selected_action(self) -> str:
+        return self.actions[self.selected_row_idx]
+
 
 class MenuWindow():
     def __init__(
                 self,
-                menu: list[str],
+                menu: Menu,
                 position: MenuPosition,
                 screen: curses.window
                 ) -> None:
 
         self.menu = menu
         self.position = position
-        self.selected_row_idx = 1
-        self.h, self.w = self.calculate_size(menu)
+        self.h, self.w = self.calculate_size(menu.header, menu.actions)
         self.top, self.left, self.right = self.calculate_position(screen)
         self.create_window()
 
     @staticmethod
     def calculate_size(
-                    menu: list[str]
+                    header: str,
+                    actions: list[str]
                     ) -> tuple[int, int]:
 
-        horizontal_padding = 4
         vertical_padding = 6
+        horizontal_padding = 4
 
-        height: int = len(menu) + horizontal_padding
-        width: int = max(len(row) for row in menu) + vertical_padding
+        height: int = len(actions) + vertical_padding
+        width_actions: int = max(len(row) for row in actions)
+        width_header: int  = len(header)
+        width = max(width_actions, width_header) + horizontal_padding
 
         return (height, width)
 
@@ -98,6 +123,7 @@ class MenuWindow():
             raise ValueError("Terminal is too small to display the program")
 
         else:
+
             return (top, left, right)
 
     def create_window(
@@ -116,12 +142,16 @@ class MenuWindow():
                     ) -> None:
 
         self.window.border()
+        x = self.w//2 - len(self.menu.header)//2
+        y = 1
+        self.window.addstr(y, x, self.menu.header)
 
-        for idx, row in enumerate(self.menu):
+
+        for idx, row in enumerate(self.menu.actions):
             x = self.w//2 - len(row)//2
-            y = self.h//2 - len(self.menu)//2 + idx
+            y = self.h//2 - len(self.menu.actions)//2 + idx
 
-            if idx == self.selected_row_idx:
+            if idx == self.menu.selected_row_idx:
                 self.window.addstr(y, x, row, curses.color_pair(2))
             else:
                 self.window.addstr(y, x, row)
@@ -132,20 +162,23 @@ class MenuWindow():
                         self
                         ) -> str | None:
 
+        self.window.clear()
+        self.window.refresh()
+
         while True:
             self.window.clear()
             self.print_menu()
 
             key = self.window.getch()
 
-            if key == curses.KEY_UP and self.selected_row_idx > 1:
-                self.selected_row_idx -= 1
+            if key == curses.KEY_UP:
+                self.menu.move_up()
 
-            elif key == curses.KEY_DOWN and self.selected_row_idx < len(self.menu) - 1:
-                self.selected_row_idx += 1
+            elif key == curses.KEY_DOWN:
+                self.menu.move_down()
 
             elif key in (curses.KEY_ENTER, 10, 13):
-                return self.menu[self.selected_row_idx]
+                return self.menu.selected_action()
 
             elif key == 27:
                 return None
@@ -157,18 +190,18 @@ class MazeWindow():
             self,
             maze_h: int,
             maze_w: int,
-            maze_menu: curses.window,
+            maze_menu_win: MenuWindow,
             screen: curses.window
             ) -> None:
 
         self.h = maze_h + 2
         self.w = maze_w + 2
-        self.top, self.left, self.right = self.calculate_position(maze_menu, screen)
+        self.top, self.left, self.right = self.calculate_position(maze_menu_win, screen)
         self.create_window()
 
     def calculate_position(
                         self,
-                        maze_menu: curses.window,
+                        maze_menu_win: MenuWindow,
                         screen: curses.window
                         ) -> tuple[int, int, int]:
 
@@ -176,7 +209,7 @@ class MazeWindow():
         padding = 1
 
         top = screen_h//2 - self.h//2
-        left = maze_menu.right + screen_w//2 - maze_menu.right//2 - self.w//2 - padding
+        left = maze_menu_win.right + screen_w//2 - maze_menu_win.right//2 - self.w//2 - padding
         right = left + self.w
 
         if (
@@ -209,11 +242,13 @@ def validating_terminal_size(
                             screen: curses.window,
                             config_data: Config,
                             maze_string: str,
-                            maze_opt: list[str],
+                            header: str,
+                            actions: list[str],
                             ) -> None:
 
     screen_h, screen_w = screen.getmaxyx()
-    maze_menu_h, maze_menu_w = MenuWindow.calculate_size(maze_opt)
+
+    maze_menu_h, maze_menu_w = MenuWindow.calculate_size(header, actions)
     outer_padding = 4
     maze_rows = maze_string.splitlines()
     rendered_h = len(maze_rows)
@@ -244,21 +279,20 @@ def run_display(
                 maze_string: str
                 ) -> None:
 
-    main_opt: list[str] = [
-        "Actions:",
+    header = "Actions:"
+
+    main_actions: list[str] = [
         "Generate maze",
         "Quit"
         ]
 
-    maze_opt: list[str] = [
-        "Actions:",
+    maze_actions: list[str] = [
         "Solve",
         "Regenerate",
         "Change wall color",
         "Return",
         "Quit"
         ]
-
 
     '''
     1. Maze logical size
@@ -278,50 +312,53 @@ def run_display(
         number of terminal rows
     '''
 
-    validating_terminal_size(stdscr, config_data, maze_string, maze_opt)
+    validating_terminal_size(stdscr, config_data, maze_string, header, maze_actions)
     initialize_colors()
     create_background(stdscr)
 
     maze_rows = maze_string.splitlines()
     rendered_h = len(maze_rows)
     rendered_w = max(len(line) for line in maze_rows)
-    main_menu = MenuWindow(main_opt, "center", stdscr)
+
+    main_menu = Menu(header, main_actions)
+    main_menu_win = MenuWindow(main_menu, "center", stdscr)
 
     while True:
-        main_selection = main_menu.handle_user_input()
-        main_menu.window.clear()
-        main_menu.window.refresh()
+        selection = main_menu_win.handle_user_input()
+
+        main_menu_win.window.clear()
+        main_menu_win.window.refresh()
         color_style = curses.color_pair(1)
 
-        if main_selection is None or main_selection == "Quit":
+        if selection is None or selection == "Quit":
             menu_actions.quit_action(stdscr)
             return
 
-        if main_selection == "Generate maze":
-
-            maze_menu = MenuWindow(maze_opt, "left", stdscr)
-            maze = MazeWindow(rendered_h, rendered_w, maze_menu, stdscr)
+        if selection == "Generate maze":
+            maze_menu = Menu(header, maze_actions)
+            maze_menu_win = MenuWindow(maze_menu, "left", stdscr)
+            maze = MazeWindow(rendered_h, rendered_w, maze_menu_win, stdscr)
 
             for y, line in enumerate(maze_rows):
                 maze.window.addstr(y + 1, 1, line, color_style)
                 maze.window.refresh()
 
             while True:
-                maze_selection = maze_menu.handle_user_input()
+                maze_selection = maze_menu_win.handle_user_input()
 
                 if maze_selection == "Solve":
                     pass
                 elif maze_selection == "Regenerate":
                     pass
                 elif maze_selection == "Change wall color":
-                    color_style = curses.color_pair(3)
-                    y = 0
-                    for y, line in enumerate(maze_rows):
-                        maze.window.addstr(y + 1, 1, line, color_style)
-                        maze.window.refresh()
+                    # color_style = curses.color_pair(3)
+                    # y = 0
+                    # for y, line in enumerate(maze_rows):
+                    #     maze.window.addstr(y + 1, 1, line, color_style)
+                    #     maze.window.refresh()
                     pass
                 elif maze_selection == "Return":
-                    menu_actions.return_action(stdscr,maze_menu.window)
+                    menu_actions.return_action(stdscr, maze_menu_win.window)
                     break
                 elif maze_selection is None or maze_selection == "Quit":
                     menu_actions.quit_action(stdscr)
