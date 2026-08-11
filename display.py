@@ -18,9 +18,12 @@ def initialize_colors(
         curses.init_pair(1, 11, 10)
         curses.init_pair(2, 10, 11)
         curses.init_pair(3, curses.COLOR_GREEN, 10)
+        curses.init_pair(4, curses.COLOR_MAGENTA, 10)
     else:
         curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_BLACK)
         curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_YELLOW)
+        curses.init_pair(3, curses.COLOR_GREEN, curses.COLOR_BLACK)
+        curses.init_pair(4, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
 
 
 def create_background(
@@ -87,12 +90,12 @@ class MenuPanel():
         vertical_padding = 6
         horizontal_padding = 4
 
-        height: int = len(actions) + vertical_padding
+        panel_h: int = len(actions) + vertical_padding
         width_actions: int = max(len(row) for row in actions)
         width_header: int  = len(header)
-        width = max(width_actions, width_header) + horizontal_padding
+        panel_w = max(width_actions, width_header) + horizontal_padding
 
-        return (height, width)
+        return (panel_h, panel_w)
 
     def calculate_position(
                         self,
@@ -192,16 +195,27 @@ class MazeWindow():
 
     def __init__(
             self,
-            maze_h: int,
-            maze_w: int,
             maze_panel: MenuPanel,
+            maze_string: str,
             screen: curses.window
             ) -> None:
 
-        self.h = maze_h + 2
-        self.w = maze_w + 2
+        self.h, self.w = self.calculate_size(maze_string)
         self.top, self.left, self.right = self.calculate_position(maze_panel, screen)
         self.create_window()
+
+    @staticmethod
+    def calculate_size(
+                    maze_string: str,
+                    ) -> tuple[int, int]:
+
+        maze_window_border = 1
+        maze_rows = maze_string.splitlines()
+
+        maze_window_h = len(maze_rows) + maze_window_border * 2
+        maze_window_w = max(len(line) for line in maze_rows) + maze_window_border * 2
+
+        return (maze_window_h, maze_window_w)
 
     def calculate_position(
                         self,
@@ -224,8 +238,7 @@ class MazeWindow():
             or left + self.w > screen_w
             or right + padding > screen_w
             ):
-            message = f"top = {top} < 0\nor left = {left} < 0\nor right = {right} > screen_w = {screen_w}\nor top = {top} + h= {self.h} >  screen_h = {screen_h}\nor  left = {left} + w = {self.w }> screen_w = {screen_w}\nor right = {right} + padding = {padding} > screen_w = {screen_w}"
-            raise ValueError(f"Limits surpassed\n{message}")
+            raise ValueError(f"Limits surpassed")
 
         else:
             return (top, left, right)
@@ -252,26 +265,28 @@ def validating_terminal_size(
 
     screen_h, screen_w = screen.getmaxyx()
 
-    maze_menu_h, maze_menu_w = MenuPanel.calculate_size(header, actions)
-    outer_padding = 4
-    maze_rows = maze_string.splitlines()
-    rendered_h = len(maze_rows)
-    rendered_w = max(len(line) for line in maze_rows)
+    maze_panel_h, maze_panel_w = MenuPanel.calculate_size(header, actions)
+    maze_window_h, maze_window_w = MazeWindow.calculate_size(maze_string)
 
-    required_h = rendered_h + outer_padding
-    required_w = rendered_w + outer_padding * 2 + maze_menu_w + 2
-    max_rendered_h = screen_h - outer_padding
-    max_rendered_w = screen_w - outer_padding * 2 - maze_menu_w
-    max_input_h = max_rendered_h // 2 - 1
-    max_input_w = max_rendered_w // 4 - 1
+    spacing = 2
+    maze_window_border = 1
 
-    if required_h > screen_h or required_w > screen_w:
+    required_screen_h = max(maze_panel_h, maze_window_h) + spacing * 2
+    required_screen_w = maze_window_w + maze_panel_w + spacing * 3
+
+    available_maze_h = screen_h - spacing * 2 - maze_window_border * 2
+    available_maze_w = screen_w - maze_panel_w - spacing * 3 - maze_window_border * 2
+
+    max_maze_input_h = (available_maze_h - 1) // 2
+    max_maze_input_w = (available_maze_w - 1) // 4
+
+    if required_screen_h > screen_h or required_screen_w > screen_w:
 
         message_1 = f"\nTerminal:\n  Current size:   h = {screen_h}   and    w = {screen_w}\n"
-        message_2 = f"  Required size:  h = {required_h}   and    w = {required_w}"
+        message_2 = f"  Required size:  h = {required_screen_h}   and    w = {required_screen_w}"
 
         message_3 = f"\nMaze:\n  Current size:                h = {config_data.height}   and    w = {config_data.width}\n"
-        message_4 = f"  Max size for this terminal:  h = {max_input_h}   and    w = {max_input_w}\n"
+        message_4 = f"  Max size for this terminal:  h = {max_maze_input_h}   and    w = {max_maze_input_w}\n"
         complete_message = message_1 + message_2 + message_3 + message_4
 
         raise ValueError(f"Terminal too small. Change terminal size or change maze dimensions.\n{complete_message}")
@@ -340,7 +355,7 @@ def run_display(
         if selection == "Generate maze":
             maze_menu = Menu(header, maze_actions)
             maze_panel = MenuPanel(maze_menu, "left", stdscr)
-            maze_win = MazeWindow(rendered_h, rendered_w, maze_panel, stdscr)
+            maze_win = MazeWindow(maze_panel, maze_string, stdscr)
 
             for y, line in enumerate(maze_rows):
                 maze_win.window.addstr(y + 1, 1, line, color_style)
