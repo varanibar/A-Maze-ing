@@ -1,6 +1,20 @@
 import random
 from mazegen.maze import Maze
 
+'''
+What it needs:
+the maze object (to work with the width, height and cells attributes)
+the entry
+the exit?
+
+What it does:
+-Creates the builder/generator that will generate the maze with the DFS algorithm
+    it works with the cells atribute (dict[tuple[int, int], int]) from the Maze object.
+    The cells walls are initially all set to 15(all 4 walls closed).
+    The generate method will change the bits for each cell of the maze with the DFS
+    algorithm.
+-Making the maze imperfect in case it's needed
+'''
 
 class MazeGenerator:
     def __init__(self, maze: Maze, entry: tuple[int, int]) -> None:
