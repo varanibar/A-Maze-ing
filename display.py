@@ -1,8 +1,7 @@
 import curses
-import time
 from typing import Literal
 from parser import Config
-
+import menu_actions
 
 MenuPosition = Literal["center", "left"]
 
@@ -205,21 +204,6 @@ class MazeWindow():
         self.window.border()
         self.window.refresh()
 
-def quit_action(
-                stdscr: curses.window
-                ) -> None:
-
-    text = "see ya!"
-    y, x = stdscr.getmaxyx()
-
-    stdscr.clear()
-    stdscr.bkgd(" ", curses.color_pair(1))
-    stdscr.border()
-    stdscr.addstr(y // 2, x // 2 - len(text) // 2, text)
-    stdscr.refresh()
-
-    time.sleep(1)
-
 
 def validating_terminal_size(
                             screen: curses.window,
@@ -310,7 +294,7 @@ def run_display(
         color_style = curses.color_pair(1)
 
         if main_selection is None or main_selection == "Quit":
-            quit_action(stdscr)
+            menu_actions.quit_action(stdscr)
             return
 
         if main_selection == "Generate maze":
@@ -344,7 +328,7 @@ def run_display(
                     stdscr.refresh()
                     break
                 elif maze_selection is None or maze_selection == "Quit":
-                    quit_action(stdscr)
+                    menu_actions.quit_action(stdscr)
                     return
 
 
@@ -359,10 +343,6 @@ def start_display(
     except ValueError as err:
         raise ValueError(f"{err}")
 
-
-# if __name__ == "__main__":
-#     maze_string = "hello"
-#     start_display(maze_string)
 
     """
     The wrapper:
