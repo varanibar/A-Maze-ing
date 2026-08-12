@@ -2,7 +2,7 @@ import random
 import time
 import curses
 from maze_window import MazeWindow
-from menu_window import MenuPanel
+from ui.menu_window import MenuPanel
 
 
 def quit_action(

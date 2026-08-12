@@ -3,7 +3,7 @@ import sys
 from parser import parse_config
 from mazegen.maze import Maze
 from mazegen.generator import MazeGenerator
-from display import start_display
+from ui.display import start_display
 
 def main() -> None:
     if len(sys.argv) != 2:

@@ -2,10 +2,10 @@ import time
 import curses
 from typing import Literal
 from parser import Config
-import menu_actions
-from maze_window import MazeWindow
-from menu_window import Menu
-from menu_window import MenuPanel
+import ui.actions as actions
+from ui.maze_window import MazeWindow
+from ui.menu_window import Menu
+from ui.menu_window import MenuPanel
 
 MENU_HEADER = "Actions:"
 
@@ -107,13 +107,13 @@ def run_maze_screen(
         elif selection == "Regenerate":
             pass
         elif selection == "Change wall color":
-            menu_actions.change_color_action(maze_win)
+            actions.change_color_action(maze_win)
             pass
         elif selection == "Return":
-            menu_actions.return_action(maze_panel, screen)
+            actions.return_action(maze_panel, screen)
             return "Return"
         elif selection is None or selection == "Quit":
-            menu_actions.quit_action(screen)
+            actions.quit_action(screen)
             return "Quit"
 
 
@@ -155,14 +155,14 @@ def run_display(
         main_panel.clear()
 
         if selection is None or selection == "Quit":
-            menu_actions.quit_action(stdscr)
+            actions.quit_action(stdscr)
             return
 
         if selection == "Generate maze":
             result = run_maze_screen(maze_menu, maze_string, stdscr)
 
             if result == "Quit":
-                menu_actions.quit_action(stdscr)
+                actions.quit_action(stdscr)
                 return
 
 
