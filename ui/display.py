@@ -1,8 +1,6 @@
-import time
 import curses
-from typing import Literal
-from parser import Config
 import ui.actions
+from parser import Config
 from ui.maze_window import MazeWindow
 from ui.menu_window import Menu
 from ui.menu_window import MenuPanel
@@ -44,6 +42,24 @@ def validate_layout(
                     menu: Menu,
                     screen: curses.window
                     ) -> None:
+
+    '''
+    1. Maze logical size
+   width = number of maze cells
+    each maze cell takes 4 terminal columns horizontally
+   height = number of maze cells
+    each cell takes 2 terminal rows vertically
+
+    2. Renderer grid size
+    grid_width = width * 2 + 1
+    grid_height = height * 2 + 1
+
+    3. Actual curses/terminal size
+    rendered_width = width * 4 + 1
+        number of terminal columns
+    rendered_height = height * 2 + 1
+        number of terminal rows
+    '''
 
     screen_h, screen_w = screen.getmaxyx()
 
@@ -90,11 +106,44 @@ def initialize_display(
     screen.refresh()
 
 
+def regenerate() -> str:
+    pass
+
+
+def run_main_screen(main_menu: Menu,
+                    maze_menu: Menu,
+                    maze_string: str,
+                    screen: curses.window,
+                    ) -> str:
+
+    main_panel = MenuPanel(main_menu, "center", screen)
+
+    while True:                                     # MAIN LOOP
+        selection = main_panel.navigate_menu()
+        main_panel.clear()
+
+        if selection == "Generate maze":
+            while True:                               # MAZE LOOP
+                result = run_maze_screen(maze_menu, maze_string, screen)
+
+                if result == "Quit":
+                    return "Quit"
+                elif result == "Return":
+                    break
+                elif result == "Regenerate":
+                    maze_string = regenerate()
+                    continue
+
+        elif selection is None or selection == "Quit":
+            ui.actions.quit_action(screen)
+            return "Quit"
+
+
 def run_maze_screen(
-                        maze_menu: Menu,
-                        maze_string: str,
-                        screen: curses.window,
-                        ) -> str:
+                    maze_menu: Menu,
+                    maze_string: str,
+                    screen: curses.window,
+                    ) -> str:
 
     maze_panel = MenuPanel(maze_menu, "left", screen)
     maze_win = MazeWindow(maze_panel, maze_string, screen)
@@ -105,10 +154,10 @@ def run_maze_screen(
         if selection == "Solve":
             pass
         elif selection == "Regenerate":
-            pass
+            return "Regenerate"
         elif selection == "Change wall color":
             ui.actions.change_color_action(maze_win)
-            pass
+            continue
         elif selection == "Return":
             ui.actions.return_action(maze_panel, screen)
             return "Return"
@@ -123,23 +172,6 @@ def run_display(
                 maze_string: str
                 ) -> None:
 
-    '''
-    1. Maze logical size
-   width = number of maze cells
-    each maze cell takes 4 terminal columns horizontally
-   height = number of maze cells
-    each cell takes 2 terminal rows vertically
-
-    2. Renderer grid size
-    grid_width = width * 2 + 1
-    grid_height = height * 2 + 1
-
-    3. Actual curses/terminal size
-    rendered_width = width * 4 + 1
-        number of terminal columns
-    rendered_height = height * 2 + 1
-        number of terminal rows
-    '''
     curses.curs_set(0)
 
     main_menu = Menu(MENU_HEADER, MAIN_ACTIONS)
@@ -149,21 +181,10 @@ def run_display(
 
     initialize_display(stdscr)
 
-    main_panel = MenuPanel(main_menu, "center", stdscr)
-    while True:
-        selection = main_panel.navigate_menu()
-        main_panel.clear()
+    result = run_main_screen(main_menu, maze_menu, maze_string, stdscr)
+    if result == "Quit":
+        return
 
-        if selection is None or selection == "Quit":
-            ui.actions.quit_action(stdscr)
-            return
-
-        if selection == "Generate maze":
-            result = run_maze_screen(maze_menu, maze_string, stdscr)
-
-            if result == "Quit":
-                ui.actions.quit_action(stdscr)
-                return
 
 
 def start_display(

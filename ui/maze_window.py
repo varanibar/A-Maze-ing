@@ -1,5 +1,4 @@
 import curses
-import time
 from ui.menu_window import MenuPanel
 
 
@@ -13,7 +12,10 @@ class MazeWindow():
             ) -> None:
 
         self.h, self.w = self.calculate_size(maze_string)
-        self.top, self.left, self.right = self.calculate_position(maze_panel, screen)
+        self.top, self.left, self.right = self.calculate_position(
+                                                                maze_panel,
+                                                                screen
+                                                                )
         self.maze_string = maze_string
         self.color_style = curses.color_pair(1)
         self.create_window()
@@ -28,7 +30,9 @@ class MazeWindow():
         maze_rows = maze_string.splitlines()
 
         maze_window_h = len(maze_rows) + maze_window_border * 2
-        maze_window_w = max(len(line) for line in maze_rows) + maze_window_border * 2
+        maze_window_w = max(
+                            len(line) for line in maze_rows
+                            ) + maze_window_border * 2
 
         return (maze_window_h, maze_window_w)
 
@@ -41,8 +45,13 @@ class MazeWindow():
         screen_h, screen_w = screen.getmaxyx()
         padding = 1
 
-        top = screen_h//2 - self.h//2
-        left = maze_panel.right + screen_w//2 - maze_panel.right//2 - self.w//2 - padding
+        top = (screen_h - self.h)//2
+        left = (
+                maze_panel.right
+                + (screen_w - maze_panel.right)//2
+                - self.w//2
+                - padding
+                )
         right = left + self.w
 
         if (
@@ -52,8 +61,8 @@ class MazeWindow():
             or top + self.h > screen_h
             or left + self.w > screen_w
             or right + padding > screen_w
-            ):
-            raise ValueError(f"Limits surpassed")
+                ):
+            raise ValueError("Limits surpassed")
 
         else:
             return (top, left, right)
@@ -79,4 +88,3 @@ class MazeWindow():
             self.window.addstr(y + 1, 1, line, self.color_style)
 
         self.window.refresh()
-
