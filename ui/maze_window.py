@@ -1,7 +1,6 @@
-from menu_window import Menu
-from menu_window import MenuPanel
 import curses
 import time
+from ui.menu_window import MenuPanel
 
 
 class MazeWindow():

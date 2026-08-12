@@ -1,7 +1,7 @@
 import random
 import time
 import curses
-from maze_window import MazeWindow
+from ui.maze_window import MazeWindow
 from ui.menu_window import MenuPanel
 
 

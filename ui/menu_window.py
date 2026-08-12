@@ -1,4 +1,3 @@
-
 import curses
 from typing import Literal
 
@@ -121,7 +120,7 @@ class MenuPanel():
 
         self.window.refresh()
 
-    def handle_user_input(
+    def navigate_menu(
                         self
                         ) -> str | None:
 
