@@ -2,9 +2,7 @@
 import curses
 from typing import Literal
 
-MenuPosition = Literal["center", "left"]
-
-
+MenuPositions = Literal["center", "left"]
 
 class Menu:
     def __init__(
@@ -33,29 +31,28 @@ class MenuPanel():
     def __init__(
                 self,
                 menu: Menu,
-                position: MenuPosition,
+                position: MenuPositions,
                 screen: curses.window
                 ) -> None:
 
         self.menu = menu
         self.position = position
-        self.h, self.w = self.calculate_size(menu.header, menu.actions)
+        self.h, self.w = self.calculate_size(menu)
         self.top, self.left, self.right = self.calculate_position(screen)
         self.create_window()
         self.print_menu()
 
     @staticmethod
     def calculate_size(
-                    header: str,
-                    actions: list[str]
+                    menu: Menu
                     ) -> tuple[int, int]:
 
         vertical_padding = 6
         horizontal_padding = 4
 
-        panel_h: int = len(actions) + vertical_padding
-        width_actions: int = max(len(row) for row in actions)
-        width_header: int  = len(header)
+        panel_h: int = len(menu.actions) + vertical_padding
+        width_actions: int = max(len(row) for row in menu.actions)
+        width_header: int  = len(menu.header)
         panel_w = max(width_actions, width_header) + horizontal_padding
 
         return (panel_h, panel_w)

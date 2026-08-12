@@ -2,6 +2,7 @@ import random
 import time
 import curses
 from maze_window import MazeWindow
+from menu_window import MenuPanel
 
 
 def quit_action(
@@ -21,13 +22,11 @@ def quit_action(
 
 
 def return_action(
-                stdscr: curses.window,
-                window: curses.window
+                menu_panel: MenuPanel,
+                stdscr: curses.window
                 ) -> None:
 
-    window.clear()
-    window.refresh()
-    del window
+    del menu_panel
 
     stdscr.touchwin()
     stdscr.refresh()

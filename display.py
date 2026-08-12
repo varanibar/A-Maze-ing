@@ -7,8 +7,20 @@ from maze_window import MazeWindow
 from menu_window import Menu
 from menu_window import MenuPanel
 
-MenuPosition = Literal["center", "left"]
+MENU_HEADER = "Actions:"
 
+MAIN_ACTIONS: list[str] = [
+    "Generate maze",
+    "Quit"
+    ]
+
+MAZE_ACTIONS: list[str] = [
+    "Solve",
+    "Regenerate",
+    "Change wall color",
+    "Return",
+    "Quit"
+    ]
 
 def initialize_colors(
                     ) -> None:
@@ -26,36 +38,16 @@ def initialize_colors(
         curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_YELLOW)
 
 
-def create_background(
+def validate_layout(
+                    config_data: Config,
+                    maze_string: str,
+                    menu: Menu,
                     screen: curses.window
                     ) -> None:
 
-    h, w = screen.getmaxyx()
-
-    text_top = "Welcome to A-Maze-ing!"
-    text_bottom = "Project made by varaniba and pride-ol"
-    x_text_top = w//2 - len(text_top)//2
-    x_text_bottom = w//2 - len(text_bottom)//2
-
-    curses.curs_set(0)
-    screen.bkgd(" ", curses.color_pair(1))
-    screen.border()
-    screen.addstr(0, x_text_top, text_top)
-    screen.addstr(h - 1, x_text_bottom, text_bottom)
-    screen.refresh()
-
-
-def validating_terminal_size(
-                            config_data: Config,
-                            maze_string: str,
-                            header: str,
-                            actions: list[str],
-                            screen: curses.window
-                            ) -> None:
-
     screen_h, screen_w = screen.getmaxyx()
 
-    maze_panel_h, maze_panel_w = MenuPanel.calculate_size(header, actions)
+    maze_panel_h, maze_panel_w = MenuPanel.calculate_size(menu)
     maze_window_h, maze_window_w = MazeWindow.calculate_size(maze_string)
 
     spacing = 2
@@ -79,26 +71,57 @@ def validating_terminal_size(
         raise ValueError(f"Terminal too small. Change terminal size or change maze dimensions.\n{complete_message}")
 
 
+def initialize_display(
+                screen: curses.window,
+                ) -> None:
+
+    h, w = screen.getmaxyx()
+
+    text_top = "Welcome to A-Maze-ing!"
+    text_bottom = "Project made by varaniba and pride-ol"
+    x_text_top = w//2 - len(text_top)//2
+    x_text_bottom = w//2 - len(text_bottom)//2
+
+    initialize_colors()
+    screen.bkgd(" ", curses.color_pair(1))
+    screen.border()
+    screen.addstr(0, x_text_top, text_top)
+    screen.addstr(h - 1, x_text_bottom, text_bottom)
+    screen.refresh()
+
+
+def run_maze_screen(
+                        maze_menu: Menu,
+                        maze_string: str,
+                        screen: curses.window,
+                        ) -> str:
+
+    maze_panel = MenuPanel(maze_menu, "left", screen)
+    maze_win = MazeWindow(maze_panel, maze_string, screen)
+
+    while True:
+        selection = maze_panel.handle_user_input()
+
+        if selection == "Solve":
+            pass
+        elif selection == "Regenerate":
+            pass
+        elif selection == "Change wall color":
+            menu_actions.change_color_action(maze_win)
+            pass
+        elif selection == "Return":
+            menu_actions.return_action(maze_panel, screen)
+            return "Return"
+        elif selection is None or selection == "Quit":
+            menu_actions.quit_action(screen)
+            return "Quit"
+
+
 def run_display(
                 stdscr: curses.window,
                 config_data: Config,
                 maze_string: str
                 ) -> None:
-
-    header = "Actions:"
-
-    main_actions: list[str] = [
-        "Generate maze",
-        "Quit"
-        ]
-
-    maze_actions: list[str] = [
-        "Solve",
-        "Regenerate",
-        "Change wall color",
-        "Return",
-        "Quit"
-        ]
 
     '''
     1. Maze logical size
@@ -117,46 +140,30 @@ def run_display(
     rendered_height = height * 2 + 1
         number of terminal rows
     '''
+    curses.curs_set(0)
 
-    validating_terminal_size(config_data, maze_string, header, maze_actions, stdscr)
-    initialize_colors()
-    create_background(stdscr)
+    main_menu = Menu(MENU_HEADER, MAIN_ACTIONS)
+    maze_menu = Menu(MENU_HEADER, MAZE_ACTIONS)
 
-    main_menu = Menu(header, main_actions)
+    validate_layout(config_data, maze_string, maze_menu, stdscr)
+
+    initialize_display(stdscr)
+
     main_panel = MenuPanel(main_menu, "center", stdscr)
-
     while True:
         selection = main_panel.handle_user_input()
-
         main_panel.clear()
-        color_style = curses.color_pair(1)
 
         if selection is None or selection == "Quit":
             menu_actions.quit_action(stdscr)
             return
 
         if selection == "Generate maze":
-            maze_menu = Menu(header, maze_actions)
-            maze_panel = MenuPanel(maze_menu, "left", stdscr)
+            result = run_maze_screen(maze_menu, maze_string, stdscr)
 
-            maze_win = MazeWindow(maze_panel, maze_string, color_style, stdscr)
-
-            while True:
-                maze_selection = maze_panel.handle_user_input()
-
-                if maze_selection == "Solve":
-                    pass
-                elif maze_selection == "Regenerate":
-                    pass
-                elif maze_selection == "Change wall color":
-                    menu_actions.change_color_action(maze_win)
-                    pass
-                elif maze_selection == "Return":
-                    menu_actions.return_action(stdscr, maze_panel.window)
-                    break
-                elif maze_selection is None or maze_selection == "Quit":
-                    menu_actions.quit_action(stdscr)
-                    return
+            if result == "Quit":
+                menu_actions.quit_action(stdscr)
+                return
 
 
 def start_display(

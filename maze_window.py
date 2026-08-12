@@ -10,14 +10,13 @@ class MazeWindow():
             self,
             maze_panel: MenuPanel,
             maze_string: str,
-            color_style: int,
             screen: curses.window
             ) -> None:
 
         self.h, self.w = self.calculate_size(maze_string)
         self.top, self.left, self.right = self.calculate_position(maze_panel, screen)
         self.maze_string = maze_string
-        self.color_style = color_style
+        self.color_style = curses.color_pair(1)
         self.create_window()
         self.print_maze()
 
