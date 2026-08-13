@@ -66,28 +66,27 @@ def validate_layout(
     screen_h, screen_w = screen.getmaxyx()
 
     maze_panel_h, maze_panel_w = MenuPanel.calculate_size(menu)
-    maze_window_h, maze_window_w = MazeWindow.calculate_size(state.maze_string)
 
     spacing = 2
-    maze_window_border = 1
+    cell_h = MazeWindow.CELL_H
+    cell_w = MazeWindow.CELL_W
 
-    required_screen_h = max(maze_panel_h, maze_window_h) + spacing * 2
-    required_screen_w = maze_window_w + maze_panel_w + spacing * 3
+    border_h = cell_h
+    border_w = cell_w
 
-    available_maze_h = (
-        screen_h
-        - spacing * 2
-        - maze_window_border * 2
-        )
-    available_maze_w = (
-        screen_w
-        - maze_panel_w
-        - spacing * 3
-        - maze_window_border * 2
-        )
+    maze_h = state.config_data.height
+    maze_w = state.config_data.width
 
-    max_maze_input_h = (available_maze_h - 1) // 2
-    max_maze_input_w = (available_maze_w - 1) // 4
+    maze_win_h, maze_win_w = MazeWindow.calculate_size(maze_h, maze_w)
+
+    required_screen_h = max(maze_panel_h, maze_win_h) + spacing * 2
+    required_screen_w = maze_win_w + maze_panel_w + spacing * 3
+
+    available_screen_h = (screen_h - spacing * 2)
+    available_screen_w = (screen_w - maze_panel_w - spacing * 3)
+
+    max_maze_h = (available_screen_h - border_h - 1) // cell_h
+    max_maze_w = (available_screen_w - border_w - 1) // cell_w
 
     if required_screen_h > screen_h or required_screen_w > screen_w:
 
@@ -97,8 +96,8 @@ def validate_layout(
             f"h = {state.config_data.height}   and    "
             f"w = {state.config_data.width}\n"
             "  Max size for this terminal:  "
-            f"h = {max_maze_input_h}   and    "
-            f"w = {max_maze_input_w}\n"
+            f"h = {max_maze_h}   and    "
+            f"w = {max_maze_w}\n"
             )
 
         raise ValueError(
@@ -165,7 +164,7 @@ def run_maze_screen(
                     ) -> str:
 
     maze_panel = MenuPanel(maze_menu, "left", screen)
-    maze_win = MazeWindow(maze_panel, state.maze_string, screen)
+    maze_win = MazeWindow(maze_panel, state, screen)
 
     while True:
         selection = maze_panel.navigate_menu()

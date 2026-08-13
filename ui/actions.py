@@ -51,6 +51,6 @@ def change_color_action(
         colors.remove(foreground)
     new_foreground = random.choice(colors)
     curses.init_pair(3, new_foreground, background)
-
     maze_win.color_style = curses.color_pair(3)
     maze_win.print_maze()
+    maze_win.print_entry_exit()

@@ -43,9 +43,9 @@ def main() -> None:
     except ValueError as err:
         print(f"Configuration Error: {err}", file=sys.stderr)
         sys.exit(1)
-    except Exception as err:
-        print(f"{err}", file=sys.stderr)
-        sys.exit(1)
+    # except Exception as err:
+    #     print(f"{err}", file=sys.stderr)
+    #     sys.exit(1)
 
 
 if __name__ == "__main__":
