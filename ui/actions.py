@@ -54,4 +54,3 @@ def change_color_action(
 
     maze_win.color_style = curses.color_pair(3)
     maze_win.print_maze()
-

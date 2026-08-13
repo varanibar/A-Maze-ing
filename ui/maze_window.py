@@ -62,7 +62,9 @@ class MazeWindow():
             or left + self.w > screen_w
             or right + padding > screen_w
                 ):
-            raise ValueError("Limits surpassed")
+            raise ValueError(
+                        "Terminal size changed. The maze no longer fits.\n"
+                        )
 
         else:
             return (top, left, right)

@@ -1,12 +1,11 @@
 import curses
 import ui.actions
-import time
-from parser import Config
 from ui.maze_window import MazeWindow
 from ui.menu_window import Menu
 from ui.menu_window import MenuPanel
 from maze_builder import build_maze
 from maze_builder import MazeState
+
 
 MENU_HEADER = "Actions:"
 
@@ -22,6 +21,7 @@ MAZE_ACTIONS: list[str] = [
     "Return",
     "Quit"
     ]
+
 
 def initialize_colors(
                     ) -> None:
@@ -74,19 +74,38 @@ def validate_layout(
     required_screen_h = max(maze_panel_h, maze_window_h) + spacing * 2
     required_screen_w = maze_window_w + maze_panel_w + spacing * 3
 
-    available_maze_h = screen_h - spacing * 2 - maze_window_border * 2
-    available_maze_w = screen_w - maze_panel_w - spacing * 3 - maze_window_border * 2
+    available_maze_h = (
+        screen_h
+        - spacing * 2
+        - maze_window_border * 2
+        )
+    available_maze_w = (
+        screen_w
+        - maze_panel_w
+        - spacing * 3
+        - maze_window_border * 2
+        )
 
     max_maze_input_h = (available_maze_h - 1) // 2
     max_maze_input_w = (available_maze_w - 1) // 4
 
     if required_screen_h > screen_h or required_screen_w > screen_w:
 
-        message_1 = f"\nMaze:\n  Current size:                h = {state.config_data.height}   and    w = {state.config_data.width}\n"
-        message_2 = f"  Max size for this terminal:  h = {max_maze_input_h}   and    w = {max_maze_input_w}\n"
-        complete_message = message_1 + message_2
+        message = (
+            "\nMaze:\n  "
+            "Current size:                "
+            f"h = {state.config_data.height}   and    "
+            f"w = {state.config_data.width}\n"
+            "  Max size for this terminal:  "
+            f"h = {max_maze_input_h}   and    "
+            f"w = {max_maze_input_w}\n"
+            )
 
-        raise ValueError(f"Terminal too small. Change terminal size or change maze dimensions.\n{complete_message}")
+        raise ValueError(
+            "The UI layout does not fit in the terminal. "
+            "Change terminal size or change maze dimensions.\n"
+            f"{message}"
+            )
 
 
 def initialize_display(
@@ -112,7 +131,7 @@ def run_main_screen(main_menu: Menu,
                     maze_menu: Menu,
                     state: MazeState,
                     screen: curses.window,
-                    ) -> str:
+                    ) -> None:
 
     main_panel = MenuPanel(main_menu, "center", screen)
 
@@ -125,7 +144,7 @@ def run_main_screen(main_menu: Menu,
                 result = run_maze_screen(maze_menu, state, screen)
 
                 if result == "Quit":
-                    return "Quit"
+                    return
                 elif result == "Return":
                     break
                 elif result == "Regenerate":
@@ -136,7 +155,7 @@ def run_main_screen(main_menu: Menu,
 
         elif selection is None or selection == "Quit":
             ui.actions.quit_action(screen)
-            return "Quit"
+            return
 
 
 def run_maze_screen(
@@ -181,22 +200,14 @@ def run_display(
     initialize_colors()
     initialize_display(stdscr)
 
-    result = run_main_screen(main_menu, maze_menu, state, stdscr)
-    if result == "Quit":
-        return
-
+    run_main_screen(main_menu, maze_menu, state, stdscr)
 
 
 def start_display(
                 state: MazeState
                 ) -> None:
 
-    try:
-        curses.wrapper(run_display, state)
-
-    except ValueError as err:
-        raise ValueError(f"{err}")
-
+    curses.wrapper(run_display, state)
 
     """
     The wrapper:

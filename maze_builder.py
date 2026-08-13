@@ -5,6 +5,7 @@ from parser import Config
 from mazegen.maze import Maze
 from mazegen.generator import MazeGenerator
 
+
 @dataclass
 class MazeState:
     config_file: str
@@ -40,4 +41,4 @@ def build_maze(config_file: str) -> MazeState:
                 )
 
     except Exception as err:
-        raise Exception(f"Maze generation error: {err.__class__.__name__}: {err}")
+        raise Exception(f"Maze generation - {err.__class__.__name__}: {err}")

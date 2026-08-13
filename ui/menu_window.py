@@ -1,7 +1,9 @@
 import curses
 from typing import Literal
 
+
 MenuPositions = Literal["center", "left"]
+
 
 class Menu:
     def __init__(
@@ -51,7 +53,7 @@ class MenuPanel():
 
         panel_h: int = len(menu.actions) + vertical_padding
         width_actions: int = max(len(row) for row in menu.actions)
-        width_header: int  = len(menu.header)
+        width_header: int = len(menu.header)
         panel_w = max(width_actions, width_header) + horizontal_padding
 
         return (panel_h, panel_w)
@@ -81,11 +83,12 @@ class MenuPanel():
             or top + self.h > screen_h
             or left + self.w > screen_w
             or right + padding > screen_w
-            ):
-            raise ValueError("Terminal is too small to display the program")
+                ):
+            raise ValueError(
+                        "Terminal size changed. The layout no longer fits.\n"
+                        )
 
         else:
-
             return (top, left, right)
 
     def create_window(
@@ -107,7 +110,6 @@ class MenuPanel():
         x = self.w//2 - len(self.menu.header)//2
         y = 1
         self.window.addstr(y, x, self.menu.header)
-
 
         for idx, row in enumerate(self.menu.actions):
             x = self.w//2 - len(row)//2
