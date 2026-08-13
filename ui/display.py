@@ -6,6 +6,7 @@ from ui.maze_window import MazeWindow
 from ui.menu_window import Menu
 from ui.menu_window import MenuPanel
 from maze_builder import build_maze
+from maze_builder import MazeState
 
 MENU_HEADER = "Actions:"
 
@@ -39,8 +40,7 @@ def initialize_colors(
 
 
 def validate_layout(
-                    config_data: Config,
-                    maze_string: str,
+                    state: MazeState,
                     menu: Menu,
                     screen: curses.window
                     ) -> None:
@@ -66,7 +66,7 @@ def validate_layout(
     screen_h, screen_w = screen.getmaxyx()
 
     maze_panel_h, maze_panel_w = MenuPanel.calculate_size(menu)
-    maze_window_h, maze_window_w = MazeWindow.calculate_size(maze_string)
+    maze_window_h, maze_window_w = MazeWindow.calculate_size(state.maze_string)
 
     spacing = 2
     maze_window_border = 1
@@ -82,7 +82,7 @@ def validate_layout(
 
     if required_screen_h > screen_h or required_screen_w > screen_w:
 
-        message_1 = f"\nMaze:\n  Current size:                h = {config_data.height}   and    w = {config_data.width}\n"
+        message_1 = f"\nMaze:\n  Current size:                h = {state.config_data.height}   and    w = {state.config_data.width}\n"
         message_2 = f"  Max size for this terminal:  h = {max_maze_input_h}   and    w = {max_maze_input_w}\n"
         complete_message = message_1 + message_2
 
@@ -110,7 +110,7 @@ def initialize_display(
 
 def run_main_screen(main_menu: Menu,
                     maze_menu: Menu,
-                    maze_string: str,
+                    state: MazeState,
                     screen: curses.window,
                     ) -> str:
 
@@ -122,15 +122,15 @@ def run_main_screen(main_menu: Menu,
 
         if selection == "Generate maze":
             while True:                               # MAZE LOOP
-                result = run_maze_screen(maze_menu, maze_string, screen)
+                result = run_maze_screen(maze_menu, state, screen)
 
                 if result == "Quit":
                     return "Quit"
                 elif result == "Return":
                     break
                 elif result == "Regenerate":
-                    config_data, maze_string = build_maze("config.txt")
-                    validate_layout(config_data, maze_string, maze_menu, screen)
+                    state = build_maze(state.config_file)
+                    validate_layout(state, maze_menu, screen)
                     initialize_display(screen)
                     continue
 
@@ -141,12 +141,12 @@ def run_main_screen(main_menu: Menu,
 
 def run_maze_screen(
                     maze_menu: Menu,
-                    maze_string: str,
+                    state: MazeState,
                     screen: curses.window,
                     ) -> str:
 
     maze_panel = MenuPanel(maze_menu, "left", screen)
-    maze_win = MazeWindow(maze_panel, maze_string, screen)
+    maze_win = MazeWindow(maze_panel, state.maze_string, screen)
 
     while True:
         selection = maze_panel.navigate_menu()
@@ -168,8 +168,7 @@ def run_maze_screen(
 
 def run_display(
                 stdscr: curses.window,
-                config_data: Config,
-                maze_string: str
+                state: MazeState
                 ) -> None:
 
     curses.curs_set(0)
@@ -177,24 +176,23 @@ def run_display(
     main_menu = Menu(MENU_HEADER, MAIN_ACTIONS)
     maze_menu = Menu(MENU_HEADER, MAZE_ACTIONS)
 
-    validate_layout(config_data, maze_string, maze_menu, stdscr)
+    validate_layout(state, maze_menu, stdscr)
 
     initialize_colors()
     initialize_display(stdscr)
 
-    result = run_main_screen(main_menu, maze_menu, maze_string, stdscr)
+    result = run_main_screen(main_menu, maze_menu, state, stdscr)
     if result == "Quit":
         return
 
 
 
 def start_display(
-                config_data: Config,
-                maze_string: str
+                state: MazeState
                 ) -> None:
 
     try:
-        curses.wrapper(run_display, config_data, maze_string)
+        curses.wrapper(run_display, state)
 
     except ValueError as err:
         raise ValueError(f"{err}")

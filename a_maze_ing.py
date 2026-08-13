@@ -32,9 +32,9 @@ def main() -> None:
 
         # maze_string = grid.render()
         # print(maze_string)
-        config_data, maze_string = build_maze(config_file)
+        state = build_maze(config_file)
 
-        start_display(config_data, maze_string)
+        start_display(state)
 
     except FileNotFoundError:
         print(f"Error: File '{config_file}' not found.", file=sys.stderr)
