@@ -4,6 +4,7 @@ from parser import parse_config
 from mazegen.maze import Maze
 from mazegen.generator import MazeGenerator
 from ui.display import start_display
+from maze_builder import build_maze
 
 def main() -> None:
     if len(sys.argv) != 2:
@@ -14,23 +15,25 @@ def main() -> None:
     config_file = sys.argv[1]
 
     try:
-        config_data = parse_config(config_file)
+        # config_data = parse_config(config_file)
 
-        if config_data.seed is not None:
-            random.seed(config_data.seed)
+        # if config_data.seed is not None:
+        #     random.seed(config_data.seed)
 
-        grid = Maze(config_data.width, config_data.height)
-        builder = MazeGenerator(
-            grid, (config_data.maze_entry[0], config_data.maze_entry[1])
-        )
+        # grid = Maze(config_data.width, config_data.height)
+        # builder = MazeGenerator(
+        #     grid, (config_data.maze_entry[0], config_data.maze_entry[1])
+        # )
 
-        builder.generate()
+        # builder.generate()
 
-        if not config_data.perfect:
-            builder.make_imperfect()
+        # if not config_data.perfect:
+        #     builder.make_imperfect()
 
-        maze_string = grid.render()
+        # maze_string = grid.render()
         # print(maze_string)
+        config_data, maze_string = build_maze(config_file)
+
         start_display(config_data, maze_string)
 
     except FileNotFoundError:
