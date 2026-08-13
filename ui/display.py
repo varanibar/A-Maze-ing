@@ -1,9 +1,11 @@
 import curses
 import ui.actions
+import time
 from parser import Config
 from ui.maze_window import MazeWindow
 from ui.menu_window import Menu
 from ui.menu_window import MenuPanel
+from maze_builder import build_maze
 
 MENU_HEADER = "Actions:"
 
@@ -98,16 +100,12 @@ def initialize_display(
     x_text_top = w//2 - len(text_top)//2
     x_text_bottom = w//2 - len(text_bottom)//2
 
-    initialize_colors()
+    screen.clear()
     screen.bkgd(" ", curses.color_pair(1))
     screen.border()
     screen.addstr(0, x_text_top, text_top)
     screen.addstr(h - 1, x_text_bottom, text_bottom)
     screen.refresh()
-
-
-def regenerate() -> str:
-    pass
 
 
 def run_main_screen(main_menu: Menu,
@@ -131,7 +129,9 @@ def run_main_screen(main_menu: Menu,
                 elif result == "Return":
                     break
                 elif result == "Regenerate":
-                    maze_string = regenerate()
+                    config_data, maze_string = build_maze("config.txt")
+                    validate_layout(config_data, maze_string, maze_menu, screen)
+                    initialize_display(screen)
                     continue
 
         elif selection is None or selection == "Quit":
@@ -179,6 +179,7 @@ def run_display(
 
     validate_layout(config_data, maze_string, maze_menu, stdscr)
 
+    initialize_colors()
     initialize_display(stdscr)
 
     result = run_main_screen(main_menu, maze_menu, maze_string, stdscr)
