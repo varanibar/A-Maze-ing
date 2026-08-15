@@ -4,4 +4,6 @@ tests
 __pycache__
 old
 .venv
+*.txt
+.mypy_cache
 config.txt
