@@ -6,6 +6,7 @@ from ui.menu_window import MenuPanel
 from maze_builder import build_maze
 from maze_builder import MazeState
 from maze_builder import write_output_file
+from maze_builder import regenerate_maze
 
 MENU_HEADER = "Actions:"
 
@@ -26,6 +27,12 @@ MAZE_ACTIONS: list[str] = [
 def initialize_colors(
                     ) -> None:
 
+    """Initialize the color pairs used by the curses interface.
+
+    Uses custom colors when supported by the terminal and falls back
+    to standard curses colors otherwise.
+    """
+
     curses.start_color()
 
     if curses.can_change_color():
@@ -44,6 +51,12 @@ def validate_layout(
                     menu: Menu,
                     screen: curses.window
                     ) -> None:
+
+    """Check that the menu and maze fit inside the current terminal.
+
+    Raises a ValueError with the maximum supported maze dimensions
+    when the current layout is too large for the terminal.
+    """
 
     screen_h, screen_w = screen.getmaxyx()
 
@@ -93,6 +106,8 @@ def initialize_display(
                 screen: curses.window,
                 ) -> None:
 
+    """Draw the main screen background, border, and project titles."""
+
     h, w = screen.getmaxyx()
 
     text_top = "Welcome to A-Maze-ing!"
@@ -114,6 +129,13 @@ def run_main_screen(main_menu: Menu,
                     screen: curses.window,
                     ) -> None:
 
+    """Run the main menu and coordinate navigation between screens.
+
+    Handles the "Generate maze" and "Quit" actions from the main menu,
+    and processes "Return", "Regenerate", and "Quit" results from the
+    maze screen.
+    """
+
     main_panel = MenuPanel(main_menu, "center", screen)
 
     while True:                                     # MAIN LOOP
@@ -130,29 +152,28 @@ def run_main_screen(main_menu: Menu,
                     break
                 elif result == "Regenerate":
                     try:
-                        state = build_maze(
-                                        state.config_file
-                                        )
+                        new_state = regenerate_maze(state)
                         validate_layout(
-                                        state,
+                                        new_state,
                                         maze_menu,
                                         screen
                                         )
                         write_output_file(
-                                        state.config_data.output_file,
-                                        state.maze,
-                                        state.config_data.maze_entry,
-                                        state.config_data.maze_exit,
+                                        new_state.config_data.output_file,
+                                        new_state.maze,
+                                        new_state.config_data.maze_entry,
+                                        new_state.config_data.maze_exit,
                                         ""
                                         )
-                        initialize_display(
-                                        screen
-                                        )
-                    except Exception:
+                    except ValueError as err:
                         raise ValueError(
                             "Regeneration not possible"
                             ", invalid new configuration.\n"
+                            f"{err}"
                             )
+                    else:
+                        state = new_state
+                        initialize_display(screen)
                     continue
 
         elif selection is None or selection == "Quit":
@@ -165,6 +186,12 @@ def run_maze_screen(
                     state: MazeState,
                     screen: curses.window,
                     ) -> str:
+
+    """Run the maze screen until the user chooses another action.
+
+    Returns the action that requires handling outside the maze screen,
+    such as "Regenerate", "Return", or "Quit".
+    """
 
     maze_panel = MenuPanel(maze_menu, "left", screen)
     maze_win = MazeWindow(maze_panel, state, screen)
@@ -192,6 +219,8 @@ def run_display(
                 state: MazeState
                 ) -> None:
 
+    """Initialize the curses UI and start the main application screen."""
+
     curses.curs_set(0)
 
     main_menu = Menu(MENU_HEADER, MAIN_ACTIONS)
@@ -209,12 +238,10 @@ def start_display(
                 state: MazeState
                 ) -> None:
 
-    curses.wrapper(run_display, state)
+    """Start the curses interface using curses.wrapper().
 
+    The wrapper initializes curses, creates stdscr, calls run_display(),
+    and restores the terminal when the program finishes or raises an error.
     """
-    The wrapper:
-    1. Starts curses
-    2. Creates the main terminal window stdscr
-    3. Calls the function run_display(stdscr: curses.window)
-    4. Restores the terminal when run_display finishes or crashes.
-    """
+
+    curses.wrapper(run_display, state)

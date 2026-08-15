@@ -8,10 +8,17 @@ from mazegen.generator import MazeGenerator
 
 @dataclass
 class MazeState:
+    """Store the current maze, its configuration, and rendered form."""
     config_file: str
     config_data: Config
     maze_string: str
     maze: Maze
+
+
+'''
+Moved the write file workflow out of a_maze_ing.py so it can be
+reused both at startup and when regenerating a maze from the UI.
+'''
 
 
 def write_output_file(
@@ -36,33 +43,40 @@ def write_output_file(
         file.write("\n".join(lines))
 
 
+'''
+Moved the maze-building workflow out of a_maze_ing.py so it can be
+reused both at startup and when regenerating a maze from the UI.
+'''
+
+
 def build_maze(config_file: str) -> MazeState:
+    """Parse the configuration, generate a maze, and return its state."""
 
-    try:
+    config_data = parse_config(config_file)
 
-        config_data = parse_config(config_file)
+    if config_data.seed is not None:
+        random.seed(config_data.seed)
 
-        if config_data.seed is not None:
-            random.seed(config_data.seed)
+    grid = Maze(config_data.width, config_data.height)
+    builder = MazeGenerator(
+        grid, (config_data.maze_entry[0], config_data.maze_entry[1])
+    )
 
-        grid = Maze(config_data.width, config_data.height)
-        builder = MazeGenerator(
-            grid, (config_data.maze_entry[0], config_data.maze_entry[1])
-        )
+    builder.generate()
 
-        builder.generate()
+    if not config_data.perfect:
+        builder.make_imperfect()
 
-        if not config_data.perfect:
-            builder.make_imperfect()
+    maze_string = grid.render()
 
-        maze_string = grid.render()
+    return MazeState(
+            config_file=config_file,
+            config_data=config_data,
+            maze_string=maze_string,
+            maze=grid
+            )
 
-        return MazeState(
-                config_file=config_file,
-                config_data=config_data,
-                maze_string=maze_string,
-                maze=grid
-                )
 
-    except Exception as err:
-        raise Exception(f"Maze generation - {err.__class__.__name__}: {err}")
+def regenerate_maze(state: MazeState) -> MazeState:
+    new_state = build_maze(state.config_file)
+    return new_state
