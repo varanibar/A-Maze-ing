@@ -17,6 +17,7 @@ debug:
 clean:
 	rm -rf __pycache__ .mypy_cache
 	rm -rf */__pycache__ */.mypy_cache
+	rm output_maze.txt
 
 # Run flake8 and mypy, while ensuring both execute even if one fails.
 # Start with status=0 (no errors); set it to 1 if flake8 or mypy finds errors; exit tells make whether the checks passed or failed.
