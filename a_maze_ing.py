@@ -1,7 +1,7 @@
 import sys
 from ui.display import start_display
 from maze_builder import build_maze
-
+from maze_builder import write_output_file
 
 def main() -> None:
     if len(sys.argv) != 2:
@@ -12,26 +12,19 @@ def main() -> None:
     config_file = sys.argv[1]
 
     try:
-        # config_data = parse_config(config_file)
 
-        # if config_data.seed is not None:
-        #     random.seed(config_data.seed)
-
-        # grid = Maze(config_data.width, config_data.height)
-        # builder = MazeGenerator(
-        #     grid, (config_data.maze_entry[0], config_data.maze_entry[1])
-        # )
-
-        # builder.generate()
-
-        # if not config_data.perfect:
-        #     builder.make_imperfect()
-
-        # maze_string = grid.render()
-        # print(maze_string)
         state = build_maze(config_file)
 
         start_display(state)
+
+        write_output_file(
+                        state.config_data.output_file,
+                        state.maze,
+                        state.config_data.maze_entry,
+                        state.config_data.maze_exit,
+                        ""
+                        )
+
 
     except FileNotFoundError:
         print(f"Error: File '{config_file}' not found.", file=sys.stderr)

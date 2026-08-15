@@ -11,6 +11,29 @@ class MazeState:
     config_file: str
     config_data: Config
     maze_string: str
+    maze: Maze
+
+
+def write_output_file(
+                    file_path: str,
+                    maze: Maze,
+                    maze_entry: tuple[int, int],
+                    maze_exit: tuple[int, int],
+                    path: str = "",
+                    ) -> None:
+
+    hex_grid = maze.to_hex_grid()
+
+    lines = [
+        hex_grid,
+        "",
+        f"{maze_entry[0]},{maze_entry[1]}",
+        f"{maze_exit[0]},{maze_exit[1]}",
+        path,
+    ]
+
+    with open(file_path, "w") as file:
+        file.write("\n".join(lines))
 
 
 def build_maze(config_file: str) -> MazeState:
@@ -37,7 +60,8 @@ def build_maze(config_file: str) -> MazeState:
         return MazeState(
                 config_file=config_file,
                 config_data=config_data,
-                maze_string=maze_string
+                maze_string=maze_string,
+                maze=grid
                 )
 
     except Exception as err:
