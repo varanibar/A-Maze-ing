@@ -2,6 +2,7 @@ import curses
 from ui.menu_window import MenuPanel
 from maze_builder import MazeState
 
+
 class MazeWindow():
 
     CELL_H = 2
@@ -17,7 +18,10 @@ class MazeWindow():
         self.state = state
         self.maze_string = self.state.maze_string
 
-        self.h, self.w = MazeWindow.calculate_size(self.state.config_data.height, self.state.config_data.width)
+        self.h, self.w = MazeWindow.calculate_size(
+                                                self.state.config_data.height,
+                                                self.state.config_data.width
+                                                )
         self.top, self.left, self.right = self.calculate_position(
                                                                 maze_panel,
                                                                 screen
@@ -94,7 +98,12 @@ class MazeWindow():
 
         maze_lines = self.maze_string.splitlines()
         for y, line in enumerate(maze_lines):
-            self.window.addstr(y_axis_walls + y, x_axis_walls, line, self.color_style)
+            self.window.addstr(
+                            y_axis_walls + y,
+                            x_axis_walls,
+                            line,
+                            self.color_style
+                            )
 
         self.window.refresh()
 
@@ -103,7 +112,7 @@ class MazeWindow():
                 ) -> None:
 
         y_axis_path = self.CELL_H
-        x_axis_path = self.CELL_W -1
+        x_axis_path = self.CELL_W - 1
 
         self.entry_x, self.entry_y = self.state.config_data.maze_entry
         self.exit_x, self.exit_y = self.state.config_data.maze_exit
@@ -114,6 +123,14 @@ class MazeWindow():
         y_maze_exit = y_axis_path + self.exit_y * self.CELL_H
         x_maze_exit = x_axis_path + self.exit_x * self.CELL_W
 
-        self.window.addstr(y_maze_entry, x_maze_entry, "^-^", curses.color_pair(2))
-        self.window.addstr(y_maze_exit, x_maze_exit, "T^T", curses.color_pair(2))
+        self.window.addstr(y_maze_entry,
+                           x_maze_entry,
+                           "^-^",
+                           curses.color_pair(2)
+                           )
+        self.window.addstr(y_maze_exit,
+                           x_maze_exit,
+                           "T^T",
+                           curses.color_pair(2)
+                           )
         self.window.refresh()

@@ -151,7 +151,7 @@ def run_main_screen(main_menu: Menu,
                     except Exception:
                         raise ValueError(
                             "Regeneration not possible"
-                             ", invalid new configuration.\n"
+                            ", invalid new configuration.\n"
                             )
                     continue
 
