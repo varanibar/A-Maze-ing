@@ -5,7 +5,7 @@ from ui.menu_window import Menu
 from ui.menu_window import MenuPanel
 from maze_builder import build_maze
 from maze_builder import MazeState
-
+from maze_builder import write_output_file
 
 MENU_HEADER = "Actions:"
 
@@ -44,24 +44,6 @@ def validate_layout(
                     menu: Menu,
                     screen: curses.window
                     ) -> None:
-
-    '''
-    1. Maze logical size
-   width = number of maze cells
-    each maze cell takes 4 terminal columns horizontally
-   height = number of maze cells
-    each cell takes 2 terminal rows vertically
-
-    2. Renderer grid size
-    grid_width = width * 2 + 1
-    grid_height = height * 2 + 1
-
-    3. Actual curses/terminal size
-    rendered_width = width * 4 + 1
-        number of terminal columns
-    rendered_height = height * 2 + 1
-        number of terminal rows
-    '''
 
     screen_h, screen_w = screen.getmaxyx()
 
@@ -147,9 +129,30 @@ def run_main_screen(main_menu: Menu,
                 elif result == "Return":
                     break
                 elif result == "Regenerate":
-                    state = build_maze(state.config_file)
-                    validate_layout(state, maze_menu, screen)
-                    initialize_display(screen)
+                    try:
+                        state = build_maze(
+                                        state.config_file
+                                        )
+                        validate_layout(
+                                        state,
+                                        maze_menu,
+                                        screen
+                                        )
+                        write_output_file(
+                                        state.config_data.output_file,
+                                        state.maze,
+                                        state.config_data.maze_entry,
+                                        state.config_data.maze_exit,
+                                        ""
+                                        )
+                        initialize_display(
+                                        screen
+                                        )
+                    except Exception:
+                        raise ValueError(
+                            "Regeneration not possible"
+                             ", invalid new configuration.\n"
+                            )
                     continue
 
         elif selection is None or selection == "Quit":

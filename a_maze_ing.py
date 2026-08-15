@@ -3,6 +3,7 @@ from ui.display import start_display
 from maze_builder import build_maze
 from maze_builder import write_output_file
 
+
 def main() -> None:
     if len(sys.argv) != 2:
         print("Error: Missing configuration file.", file=sys.stderr)
@@ -15,8 +16,6 @@ def main() -> None:
 
         state = build_maze(config_file)
 
-        start_display(state)
-
         write_output_file(
                         state.config_data.output_file,
                         state.maze,
@@ -25,6 +24,7 @@ def main() -> None:
                         ""
                         )
 
+        start_display(state)
 
     except FileNotFoundError:
         print(f"Error: File '{config_file}' not found.", file=sys.stderr)
@@ -36,9 +36,9 @@ def main() -> None:
     except ValueError as err:
         print(f"Configuration Error: {err}", file=sys.stderr)
         sys.exit(1)
-    # except Exception as err:
-    #     print(f"{err}", file=sys.stderr)
-    #     sys.exit(1)
+    except Exception as err:
+        print(f"{err}", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
