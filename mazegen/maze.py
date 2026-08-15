@@ -1,22 +1,3 @@
-'''
-What it needs:
-the width and the height from the config file
--Vero:
-i will actually change it to the config_data so all the input is available
-        to be able to merge the class Maze with MazeWindow and work on the actions
-        of the Maze Menu
-
-What it does:
--Creates the cells dict that represent the maze walls, these will be initially set to 15
-    and later when the object is passed by the builder/generator, some of the walls of
-    the cells will be opened and the maze is now contained in this dict.
--Once the maze is generated, now we need to represent thos bits in characters, this
-    will be done with the render method that will return a string containing
-    the characters that visually represent the cells of the maze
-
--Vero:
--I need to see how i can merge this class with the MazeWindow class
-'''
 class Maze:
     def __init__(self, width: int, height: int) -> None:
         self.width = width
