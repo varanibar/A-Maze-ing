@@ -24,14 +24,6 @@ def main() -> None:
 
         state = build_maze(config_file)
 
-        write_output_file(
-                        state.config_data.output_file,
-                        state.maze,
-                        state.config_data.maze_entry,
-                        state.config_data.maze_exit,
-                        ""
-                        )
-
         start_display(state)
 
     except FileNotFoundError:

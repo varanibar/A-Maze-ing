@@ -158,17 +158,9 @@ def run_main_screen(main_menu: Menu,
                                         maze_menu,
                                         screen
                                         )
-                        write_output_file(
-                                        new_state.config_data.output_file,
-                                        new_state.maze,
-                                        new_state.config_data.maze_entry,
-                                        new_state.config_data.maze_exit,
-                                        ""
-                                        )
                     except ValueError as err:
                         raise ValueError(
-                            "Regeneration not possible"
-                            ", invalid new configuration.\n"
+                            "Regeneration not possible.\n"
                             f"{err}"
                             )
                     else:

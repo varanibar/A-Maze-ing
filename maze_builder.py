@@ -69,6 +69,14 @@ def build_maze(config_file: str) -> MazeState:
 
     maze_string = grid.render()
 
+    write_output_file(
+                    config_data.output_file,
+                    grid,
+                    config_data.maze_entry,
+                    config_data.maze_exit,
+                    ""
+                    )
+    
     return MazeState(
             config_file=config_file,
             config_data=config_data,
