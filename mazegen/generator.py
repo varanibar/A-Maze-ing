@@ -1,11 +1,13 @@
 import random
+import sys
 from mazegen.maze import Maze
 
 
 class MazeGenerator:
-    def __init__(self, maze: Maze, entry: tuple[int, int]) -> None:
+    def __init__(self, maze: Maze, entry: tuple[int, int], exit: tuple[int, int]) -> None:
         self.maze = maze
         self.entry = entry
+        self.exit = exit
         self.reserved_cells = self._get_42_cells()
         self.visited: set[tuple[int, int]] = {entry}
         self.stack: list[tuple[int, int]] = [entry]
@@ -20,7 +22,15 @@ class MazeGenerator:
             self.visited.add((x, y))
 
     def _get_42_cells(self) -> set[tuple[int, int]]:
-        """Returns the set of (x, y) coordinates forming the '42' logo."""
+        """Returns the set of (x, y) coordinates forming the '42' logo.
+        Omits the logo and logs to stderr if the grid is too small or if
+        the entry/exit points collide with the pattern.
+        """
+
+        if self.maze.width < 7 or self.maze.height < 5:
+            print("Error: Maze size is too small for '42' pattern. Omitting pattern.", file=sys.stderr)
+            return set ()
+
         cx = self.maze.width // 2
         cy = self.maze.height // 2
 
@@ -55,6 +65,10 @@ class MazeGenerator:
 
             if 0 <= cell_x < self.maze.width and 0 <= cell_y < self.maze.height:
                 reserved.add((cell_x, cell_y))
+
+        if self.entry in reserved or self.exit in reserved:
+            print("Error: Entry or exit point collides with '42' pattern. Omitting pattern.", file=sys.stderr)
+            return set()
 
         return reserved
 

@@ -60,7 +60,9 @@ def build_maze(config_file: str) -> MazeState:
 
     grid = Maze(config_data.width, config_data.height)
     builder = MazeGenerator(
-        grid, (config_data.maze_entry[0], config_data.maze_entry[1])
+        grid,
+        config_data.maze_entry,
+        config_data.maze_exit
     )
 
     builder.generate()
