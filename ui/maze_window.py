@@ -30,7 +30,7 @@ class MazeWindow():
         self.create_window()
         self.print_maze()
         self.print_entry_exit()
-        self.display_42()
+        self.print_42()
 
     @classmethod
     def calculate_size(
@@ -136,7 +136,7 @@ class MazeWindow():
                            )
         self.window.refresh()
 
-    def display_42(
+    def print_42(
                 self
                 ) -> None:
 
