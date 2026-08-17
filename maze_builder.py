@@ -13,6 +13,7 @@ class MazeState:
     config_data: Config
     maze_string: str
     maze: Maze
+    reserved_cells: set[tuple[int, int]]
 
 
 '''
@@ -76,12 +77,13 @@ def build_maze(config_file: str) -> MazeState:
                     config_data.maze_exit,
                     ""
                     )
-    
+
     return MazeState(
             config_file=config_file,
             config_data=config_data,
             maze_string=maze_string,
-            maze=grid
+            maze=grid,
+            reserved_cells=builder.reserved_cells
             )
 
 

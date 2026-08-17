@@ -140,32 +140,10 @@ class MazeWindow():
                 self
                 ) -> None:
 
-        mid_h = self.state.config_data.height//2 + 1
-        mid_w = self.state.config_data.width//2 + 1
-        cells_42 = {
-            (mid_h, mid_w - 1): 15,
-            (mid_h, mid_w - 2): 15,
-            (mid_h, mid_w - 3): 15,
-            (mid_h - 1, mid_w - 3):15,
-            (mid_h - 2, mid_w - 3):15,
-            (mid_h + 1, mid_w - 1):15,
-            (mid_h + 2, mid_w - 1):15,
-            (mid_h, mid_w + 1): 15,
-            (mid_h, mid_w + 2): 15,
-            (mid_h, mid_w + 3): 15,
-            (mid_h - 2, mid_w + 1): 15,
-            (mid_h - 2, mid_w + 2): 15,
-            (mid_h - 2, mid_w + 3): 15,
-            (mid_h - 1, mid_w + 3): 15,
-            (mid_h + 1, mid_w + 1): 15,
-            (mid_h + 2, mid_w + 1): 15,
-            (mid_h + 2, mid_w + 2): 15,
-            (mid_h + 2, mid_w + 3): 15
-            }
+        pattern = self.state.reserved_cells
 
-        coordinates = cells_42.keys()
-        for cell in coordinates:
-            y = cell[0] * self.CELL_H
-            x = cell[1] * self.CELL_W - 1
-            self.window.addstr(y, x, "4 2", curses.color_pair(2))
+        for cell in pattern:
+            y = (cell[1] + 1) * self.CELL_H
+            x = (cell[0] + 1) * self.CELL_W - 1
+            self.window.addstr(y, x, "   ", curses.color_pair(2))
         self.window.refresh()
