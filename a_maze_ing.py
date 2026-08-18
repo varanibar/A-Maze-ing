@@ -1,7 +1,9 @@
+# Built-in modules
 import sys
-from ui.display import start_display
+
+# Project modules
 from maze_builder import build_maze
-from maze_builder import write_output_file
+from ui.display import start_display
 
 
 '''
@@ -36,9 +38,9 @@ def main() -> None:
     except ValueError as err:
         print(f"Configuration Error: {err}", file=sys.stderr)
         sys.exit(0)
-    except Exception as err:
-        print(f"Unexpected error: {err}", file=sys.stderr)
-        sys.exit(0)
+    # except Exception as err:
+    #     print(f"Unexpected error: {err}", file=sys.stderr)
+    #     sys.exit(0)
 
 
 if __name__ == "__main__":
