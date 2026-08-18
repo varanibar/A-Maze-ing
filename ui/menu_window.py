@@ -37,7 +37,7 @@ class Menu:
         return self.actions[self.selected_row_idx]
 
 
-class MenuPanel():
+class MenuWindow():
     """Display an interactive menu inside a curses window."""
 
     def __init__(
@@ -64,12 +64,12 @@ class MenuPanel():
         vertical_padding = 6
         horizontal_padding = 4
 
-        panel_h: int = len(menu.actions) + vertical_padding
+        menu_win_h: int = len(menu.actions) + vertical_padding
         width_actions: int = max(len(row) for row in menu.actions)
         width_header: int = len(menu.header)
-        panel_w = max(width_actions, width_header) + horizontal_padding
+        menu_win_w = max(width_actions, width_header) + horizontal_padding
 
-        return (panel_h, panel_w)
+        return (menu_win_h, menu_win_w)
 
     def _calculate_position(
                         self,

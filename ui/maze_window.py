@@ -1,5 +1,5 @@
 import curses
-from ui.menu_window import MenuPanel
+from ui.menu_window import MenuWindow
 from maze_builder import MazeState
 
 
@@ -11,7 +11,7 @@ class MazeWindow():
 
     def __init__(
             self,
-            maze_panel: MenuPanel,
+            maze_menu_win: MenuWindow,
             state: MazeState,
             screen: curses.window
             ) -> None:
@@ -25,7 +25,7 @@ class MazeWindow():
                                                 self.state.config_data.width
                                                 )
         self.top, self.left, self.right = self._calculate_position(
-                                                                maze_panel,
+                                                                maze_menu_win,
                                                                 screen
                                                                 )
         self.color_style = curses.color_pair(1)
@@ -54,9 +54,24 @@ class MazeWindow():
 
         return (maze_win_h, maze_win_w)
 
+    @classmethod
+    def calculate_max_size(
+                        cls,
+                        available_h: int,
+                        available_w: int
+                        ) -> tuple[int, int]:
+        """Calculate the maximal maze size to display on this window."""
+
+        max_grid_h = available_h - cls.CELL_H
+        max_grid_w = available_w - cls.CELL_W
+        max_maze_h = (max_grid_h - 1)//cls.CELL_H
+        max_maze_w = (max_grid_w - 1)//cls.CELL_W
+
+        return (max_maze_h, max_maze_w)
+
     def _calculate_position(
                         self,
-                        maze_panel: MenuPanel,
+                        maze_menu_win: MenuWindow,
                         screen: curses.window
                         ) -> tuple[int, int, int]:
         """Calculate the maze window position and ensure it fits on screen."""
@@ -66,8 +81,8 @@ class MazeWindow():
 
         top = (screen_h - self.h)//2
         left = (
-                maze_panel.right
-                + (screen_w - maze_panel.right)//2
+                maze_menu_win.right
+                + (screen_w - maze_menu_win.right)//2
                 - self.w//2
                 - padding
                 )
