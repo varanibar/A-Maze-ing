@@ -4,6 +4,68 @@ import curses
 # Project modules
 from maze_builder import MazeState
 from ui.maze_window import MazeWindow
+from ui.menu_window import Menu, MenuWindow
+
+
+def validate_layout(
+                    state: MazeState,
+                    maze_menu: Menu,
+                    screen: curses.window
+                    ) -> None:
+
+    """Check that the menu and maze fit inside the current terminal.
+
+    Raises a ValueError with the maximum supported maze dimensions
+    when the current layout is too large for the terminal.
+    """
+
+    scr_h, scr_w = screen.getmaxyx()
+
+    menu_win_h, menu_win_w = MenuWindow.calculate_size(maze_menu)
+
+    spacing = MazeWindow.CELL_W
+
+    maze_h = state.config_data.height
+    maze_w = state.config_data.width
+
+    maze_win_h, maze_win_w = MazeWindow.calculate_size(
+                                                    maze_h,
+                                                    maze_w
+                                                    )
+
+    required_scr_h = max(menu_win_h, maze_win_h) + spacing * 2
+    required_scr_w = maze_win_w + menu_win_w + spacing * 3
+
+    available_h = (scr_h - spacing * 2)
+    available_w = (scr_w - menu_win_w - spacing * 3)
+
+    max_maze_h, max_maze_w = MazeWindow.calculate_max_size(
+                                                        available_h,
+                                                        available_w
+                                                        )
+
+    if required_scr_h > scr_h or required_scr_w > scr_w:
+
+        message = (
+            "\nTerminal:\n  "
+            "Current size:                "
+            f"{scr_h}x{scr_w}\n"
+            "  Minimal required size:       "
+            f"{required_scr_h}x{required_scr_w}\n"
+            "\nMaze:\n  "
+            "Current size:                "
+            f"h = {maze_h}   and    "
+            f"w = {maze_w}\n"
+            "  Max size for this terminal:  "
+            f"h = {max_maze_h}   and    "
+            f"w = {max_maze_w}\n"
+            )
+
+        raise ValueError(
+            "The UI layout does not fit in the terminal. "
+            "Change terminal size or change maze dimensions.\n"
+            f"{message}"
+            )
 
 
 def initialize_colors(
