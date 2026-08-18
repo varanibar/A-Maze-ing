@@ -2,11 +2,12 @@ import curses
 import ui.actions
 from ui.maze_window import MazeWindow
 from ui.menu_window import Menu
-from ui.menu_window import MenuPanel
-from maze_builder import build_maze
+from ui.menu_window import MenuWindow
 from maze_builder import MazeState
-from maze_builder import write_output_file
 from maze_builder import regenerate_maze
+from ui.utils import draw_maze_coordinates
+from ui.utils import draw_42_hint
+
 
 MENU_HEADER = "Actions:"
 
@@ -48,7 +49,7 @@ def initialize_colors(
 
 def validate_layout(
                     state: MazeState,
-                    menu: Menu,
+                    maze_menu: Menu,
                     screen: curses.window
                     ) -> None:
 
@@ -58,38 +59,37 @@ def validate_layout(
     when the current layout is too large for the terminal.
     """
 
-    screen_h, screen_w = screen.getmaxyx()
+    scr_h, scr_w = screen.getmaxyx()
 
-    maze_panel_h, maze_panel_w = MenuPanel.calculate_size(menu)
+    menu_win_h, menu_win_w = MenuWindow.calculate_size(maze_menu)
 
-    spacing = 2
-    cell_h = MazeWindow.CELL_H
-    cell_w = MazeWindow.CELL_W
-
-    border_h = cell_h
-    border_w = cell_w
+    spacing = MazeWindow.CELL_W
 
     maze_h = state.config_data.height
     maze_w = state.config_data.width
 
     maze_win_h, maze_win_w = MazeWindow.calculate_size(maze_h, maze_w)
 
-    required_screen_h = max(maze_panel_h, maze_win_h) + spacing * 2
-    required_screen_w = maze_win_w + maze_panel_w + spacing * 3
+    required_scr_h = max(menu_win_h, maze_win_h) + spacing * 2
+    required_scr_w = maze_win_w + menu_win_w + spacing * 3
 
-    available_screen_h = (screen_h - spacing * 2)
-    available_screen_w = (screen_w - maze_panel_w - spacing * 3)
+    available_h = (scr_h - spacing * 2)
+    available_w = (scr_w - menu_win_w - spacing * 3)
 
-    max_maze_h = (available_screen_h - border_h - 1) // cell_h
-    max_maze_w = (available_screen_w - border_w - 1) // cell_w
+    max_maze_h, max_maze_w = MazeWindow.calculate_max_size(available_h, available_w)
 
-    if required_screen_h > screen_h or required_screen_w > screen_w:
+    if required_scr_h > scr_h or required_scr_w > scr_w:
 
         message = (
+            "\nTerminal:\n  "
+            "Current size:                "
+            f"{scr_h}x{scr_w}\n"
+            "  Minimal required size:       "
+            f"{required_scr_h}x{required_scr_w}\n"
             "\nMaze:\n  "
             "Current size:                "
-            f"h = {state.config_data.height}   and    "
-            f"w = {state.config_data.width}\n"
+            f"h = {maze_h}   and    "
+            f"w = {maze_w}\n"
             "  Max size for this terminal:  "
             f"h = {max_maze_h}   and    "
             f"w = {max_maze_w}\n"
@@ -136,20 +136,25 @@ def run_main_screen(main_menu: Menu,
     maze screen.
     """
 
-    main_panel = MenuPanel(main_menu, "center", screen)
+    main_menu_win = MenuWindow(main_menu, "center", screen)
 
     while True:                                     # MAIN LOOP
-        selection = main_panel.navigate_menu()
-        main_panel.clear()
+        selection = main_menu_win.navigate_menu()
+        main_menu_win.clear()
 
         if selection == "Generate maze":
+
             while True:                               # MAZE LOOP
                 result = run_maze_screen(maze_menu, state, screen)
 
                 if result == "Quit":
+                    ui.actions.quit_action(screen)
                     return
+
                 elif result == "Return":
+                    initialize_display(screen)
                     break
+
                 elif result == "Regenerate":
                     try:
                         new_state = regenerate_maze(state)
@@ -185,24 +190,28 @@ def run_maze_screen(
     such as "Regenerate", "Return", or "Quit".
     """
 
-    maze_panel = MenuPanel(maze_menu, "left", screen)
-    maze_win = MazeWindow(maze_panel, state, screen)
+    maze_menu_win = MenuWindow(maze_menu, "left", screen)
+    maze_win = MazeWindow(maze_menu_win, state, screen)
 
+    draw_maze_coordinates(maze_win, screen)
+    draw_42_hint(state, screen)
     while True:
-        selection = maze_panel.navigate_menu()
+        selection = maze_menu_win.navigate_menu()
 
         if selection == "Solve":
             pass
+
         elif selection == "Regenerate":
             return "Regenerate"
+
         elif selection == "Change wall color":
             ui.actions.change_color_action(maze_win)
             continue
+
         elif selection == "Return":
-            ui.actions.return_action(maze_panel, screen)
             return "Return"
+
         elif selection is None or selection == "Quit":
-            ui.actions.quit_action(screen)
             return "Quit"
 
 
