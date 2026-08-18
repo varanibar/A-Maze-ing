@@ -1,13 +1,17 @@
+# Built-in modules
 import curses
-import ui.actions
-from ui.maze_window import MazeWindow
-from ui.menu_window import Menu
-from ui.menu_window import MenuWindow
-from maze_builder import MazeState
-from maze_builder import regenerate_maze
-from ui.utils import draw_maze_coordinates
-from ui.utils import draw_42_hint
 
+# Project modules
+from maze_builder import MazeState, regenerate_maze
+from ui.actions import quit_action, change_color_action
+from ui.maze_window import MazeWindow
+from ui.menu_window import Menu, MenuWindow
+from ui.display_utils import (
+    draw_42_hint,
+    draw_maze_coordinates,
+    initialize_colors,
+    initialize_display,
+)
 
 MENU_HEADER = "Actions:"
 
@@ -23,28 +27,6 @@ MAZE_ACTIONS: list[str] = [
     "Return",
     "Quit"
     ]
-
-
-def initialize_colors(
-                    ) -> None:
-
-    """Initialize the color pairs used by the curses interface.
-
-    Uses custom colors when supported by the terminal and falls back
-    to standard curses colors otherwise.
-    """
-
-    curses.start_color()
-
-    if curses.can_change_color():
-        curses.init_color(10, 59, 106, 169)
-        curses.init_color(11, 882, 682, 86)
-        curses.init_pair(1, 11, 10)
-        curses.init_pair(2, 10, 11)
-
-    else:
-        curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_BLACK)
-        curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_YELLOW)
 
 
 def validate_layout(
@@ -68,7 +50,10 @@ def validate_layout(
     maze_h = state.config_data.height
     maze_w = state.config_data.width
 
-    maze_win_h, maze_win_w = MazeWindow.calculate_size(maze_h, maze_w)
+    maze_win_h, maze_win_w = MazeWindow.calculate_size(
+                                                    maze_h,
+                                                    maze_w
+                                                    )
 
     required_scr_h = max(menu_win_h, maze_win_h) + spacing * 2
     required_scr_w = maze_win_w + menu_win_w + spacing * 3
@@ -76,7 +61,10 @@ def validate_layout(
     available_h = (scr_h - spacing * 2)
     available_w = (scr_w - menu_win_w - spacing * 3)
 
-    max_maze_h, max_maze_w = MazeWindow.calculate_max_size(available_h, available_w)
+    max_maze_h, max_maze_w = MazeWindow.calculate_max_size(
+                                                        available_h,
+                                                        available_w
+                                                        )
 
     if required_scr_h > scr_h or required_scr_w > scr_w:
 
@@ -102,28 +90,8 @@ def validate_layout(
             )
 
 
-def initialize_display(
-                screen: curses.window,
-                ) -> None:
-
-    """Draw the main screen background, border, and project titles."""
-
-    h, w = screen.getmaxyx()
-
-    text_top = "Welcome to A-Maze-ing!"
-    text_bottom = "Project made by varaniba and pride-ol"
-    x_text_top = w//2 - len(text_top)//2
-    x_text_bottom = w//2 - len(text_bottom)//2
-
-    screen.clear()
-    screen.bkgd(" ", curses.color_pair(1))
-    screen.border()
-    screen.addstr(0, x_text_top, text_top)
-    screen.addstr(h - 1, x_text_bottom, text_bottom)
-    screen.refresh()
-
-
-def run_main_screen(main_menu: Menu,
+def run_main_screen(
+                    main_menu: Menu,
                     maze_menu: Menu,
                     state: MazeState,
                     screen: curses.window,
@@ -148,7 +116,7 @@ def run_main_screen(main_menu: Menu,
                 result = run_maze_screen(maze_menu, state, screen)
 
                 if result == "Quit":
-                    ui.actions.quit_action(screen)
+                    quit_action(screen)
                     return
 
                 elif result == "Return":
@@ -174,7 +142,7 @@ def run_main_screen(main_menu: Menu,
                     continue
 
         elif selection is None or selection == "Quit":
-            ui.actions.quit_action(screen)
+            quit_action(screen)
             return
 
 
@@ -205,7 +173,7 @@ def run_maze_screen(
             return "Regenerate"
 
         elif selection == "Change wall color":
-            ui.actions.change_color_action(maze_win)
+            change_color_action(maze_win)
             continue
 
         elif selection == "Return":

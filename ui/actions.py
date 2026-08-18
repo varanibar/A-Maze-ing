@@ -1,6 +1,9 @@
+# Built-in modules
+import curses
 import random
 import time
-import curses
+
+# Project modules
 from ui.maze_window import MazeWindow
 
 
@@ -18,15 +21,6 @@ def quit_action(
     stdscr.refresh()
 
     time.sleep(1)
-
-
-def return_action(
-                stdscr: curses.window
-                ) -> None:
-    """Returns to the main screen"""
-
-    stdscr.touchwin()
-    stdscr.refresh()
 
 
 def change_color_action(

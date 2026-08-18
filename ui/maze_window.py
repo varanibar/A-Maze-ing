@@ -1,6 +1,9 @@
+# Built-in modules
 import curses
-from ui.menu_window import MenuWindow
+
+# Project modules
 from maze_builder import MazeState
+from ui.menu_window import MenuWindow
 
 
 class MazeWindow():

@@ -1,3 +1,4 @@
+# Built-in modules
 import curses
 from typing import Literal
 
