@@ -1,7 +1,9 @@
+# Built-in modules
 import random
+
+# Project modules
 from dataclasses import dataclass
-from parser import parse_config
-from parser import Config
+from parser import Config, parse_config
 from mazegen.maze import Maze
 from mazegen.generator import MazeGenerator
 
