@@ -27,7 +27,7 @@ class MazeGenerator:
         the entry/exit points collide with the pattern.
         """
 
-        if self.maze.width < 7 or self.maze.height < 5:
+        if self.maze.width < 9 or self.maze.height < 7:
             print("Error: Maze size is too small for '42' pattern. Omitting pattern.", file=sys.stderr)
             return set ()
 
