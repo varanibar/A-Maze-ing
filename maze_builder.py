@@ -4,8 +4,7 @@ import random
 # Project modules
 from dataclasses import dataclass
 from parser import Config, parse_config
-from mazegen.maze import Maze
-from mazegen.generator import MazeGenerator
+from mazegen import Maze, MazeGenerator
 
 
 @dataclass
