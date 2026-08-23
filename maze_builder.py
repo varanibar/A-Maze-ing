@@ -4,8 +4,7 @@ import random
 # Project modules
 from dataclasses import dataclass
 from parser import Config, parse_config
-from mazegen import Maze, MazeGenerator
-
+from mazegen import Maze, MazeGenerator, MazeSolver
 
 @dataclass
 class MazeState:
@@ -14,6 +13,7 @@ class MazeState:
     config_data: Config
     maze_string: str
     maze: Maze
+    solver: MazeSolver
     reserved_cells: set[tuple[int, int]]
 
 
@@ -71,8 +71,10 @@ def build_maze(config_file: str) -> MazeState:
     if not config_data.perfect:
         builder.make_imperfect()
 
-    maze_string = grid.render()
+    solver = MazeSolver(builder)
 
+    maze_string = grid.render()
+    
     write_output_file(
                     config_data.output_file,
                     grid,
@@ -86,6 +88,7 @@ def build_maze(config_file: str) -> MazeState:
             config_data=config_data,
             maze_string=maze_string,
             maze=grid,
+            solver = solver,
             reserved_cells=builder.reserved_cells
             )
 
