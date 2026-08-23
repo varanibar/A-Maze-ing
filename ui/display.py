@@ -80,6 +80,8 @@ def run_main_screen(
                         state = new_state
                         initialize_display(screen)
                     continue
+                elif result == "Solve":
+                    continue
 
         elif selection is None or selection == "Quit":
             quit_action(screen)
@@ -107,7 +109,8 @@ def run_maze_screen(
         selection = maze_menu_win.navigate_menu()
 
         if selection == "Solve":
-            pass
+            maze_win.draw_solution()
+            continue
 
         elif selection == "Regenerate":
             return "Regenerate"
