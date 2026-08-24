@@ -20,7 +20,7 @@ class MazeSolver:
             current_cell = self.stack[-1]
             if current_cell == self.exit:
                 break
-            available_neighbors = self.get_neighbors(current_cell)
+            available_neighbors = self._get_neighbors(current_cell)
 
             if available_neighbors:
                 if self.exit in available_neighbors:
@@ -33,34 +33,34 @@ class MazeSolver:
                 self.stack.pop()
 
 
-    def is_not_visited(self, neighbor: tuple[int, int]) -> bool:
+    def _is_not_visited(self, neighbor: tuple[int, int]) -> bool:
         if neighbor in self.visited:
             return False
         return True
 
-    def is_wall_open(self, bit: int) -> bool:
+    def _is_wall_open(self, bit: int) -> bool:
         if bit:
             return False
         return True
 
-    def is_in_bounds(self, neighbor: tuple[int, int]) -> bool:
+    def _is_in_bounds(self, neighbor: tuple[int, int]) -> bool:
         x = neighbor[0]
         y = neighbor[1]
         if 0 <= x < self.width and 0 <= y < self.height:
             return True
         return False
 
-    def is_available(self, wall: int, neighbor: tuple[int, int]) -> bool:
+    def _is_available(self, wall: int, neighbor: tuple[int, int]) -> bool:
         if (
-            self.is_in_bounds(neighbor)
-            and self.is_wall_open(wall)
-            and self.is_not_visited(neighbor)
+            self._is_in_bounds(neighbor)
+            and self._is_wall_open(wall)
+            and self._is_not_visited(neighbor)
             ):
             return True
         return False
 
 
-    def get_neighbors(self, current_cell: tuple[int, int]) -> list[tuple[int, int]]:
+    def _get_neighbors(self, current_cell: tuple[int, int]) -> list[tuple[int, int]]:
         key = current_cell
         value = self.cells[key]
         x = current_cell[0]
@@ -75,6 +75,6 @@ class MazeSolver:
 
         for (wall, dx, dy) in moves:
             neighbor: tuple[int,int]= (x + dx, y + dy)
-            if self.is_available(wall, neighbor):
+            if self._is_available(wall, neighbor):
                 available_neighbors.append(neighbor)
         return available_neighbors
