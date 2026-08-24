@@ -1,6 +1,5 @@
 ENTRY = a_maze_ing.py
 CONFIG = config.txt
-DISPLAY = display.py
 
 install:
 	pip install flake8 mypy
@@ -16,6 +15,7 @@ debug:
 	python3 -m pdb $(ENTRY) $(CONFIG)
 
 clean:
+	find . -type d -name "__pycache__" -exec rm -rf {} +
 	rm -rf __pycache__ .mypy_cache
 	rm -rf */__pycache__ */.mypy_cache
 	rm -f output_maze.txt
@@ -39,4 +39,4 @@ lint-strict:
 	python3 -m mypy --strict . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 	exit $$status
 
-.PHONY: install, run, venv, debug, clean, lint, lint-strict, display
+.PHONY: install, run, venv, debug, clean, lint, lint-strict
