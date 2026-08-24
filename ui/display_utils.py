@@ -83,10 +83,24 @@ def initialize_colors(
         curses.init_color(11, 882, 682, 86)
         curses.init_pair(1, 11, 10)
         curses.init_pair(2, 10, 11)
+        # Solution path colors
+        curses.init_color(13, 1000, 520, 120)  # Orange
+        curses.init_color(14, 1000, 330, 300)  # Coral
+        curses.init_color(15, 950, 300, 600)   # Pink
+        curses.init_color(16, 650, 350, 950)   # Violet
+        curses.init_pair(6, 13, 10)
+        curses.init_pair(7, 14, 10)
+        curses.init_pair(8, 15, 10)
+        curses.init_pair(9, 16, 10)
 
     else:
         curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_BLACK)
         curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_YELLOW)
+        # Solution path colors
+        curses.init_pair(6, curses.COLOR_WHITE, curses.COLOR_BLACK)
+        curses.init_pair(7, curses.COLOR_WHITE, curses.COLOR_BLACK)
+        curses.init_pair(8, curses.COLOR_WHITE, curses.COLOR_BLACK)
+        curses.init_pair(9, curses.COLOR_WHITE, curses.COLOR_BLACK)
 
 
 def initialize_display(

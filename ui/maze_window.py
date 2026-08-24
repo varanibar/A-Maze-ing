@@ -185,17 +185,6 @@ class MazeWindow():
         stack = self.state.solver.stack
         path = stack.copy()
 
-        # Solution path colors
-        # curses.init_color(12, 1000, 780, 120)  # Gold
-        curses.init_color(13, 1000, 520, 120)  # Orange
-        curses.init_color(14, 1000, 330, 300)  # Coral
-        curses.init_color(15, 950, 300, 600)   # Pink
-        curses.init_color(16, 650, 350, 950)   # Violet
-        # curses.init_pair(5, 12, 10)
-        curses.init_pair(6, 13, 10)
-        curses.init_pair(7, 14, 10)
-        curses.init_pair(8, 15, 10)
-        curses.init_pair(9, 16, 10)
         path_colors = [6, 7, 8, 9]
         i = 0
         for current_cell, next_cell in zip(path, path[1:]):
