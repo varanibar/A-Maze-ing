@@ -3,7 +3,6 @@ import sys
 from mazegen.maze import Maze
 
 
-
 class MazeGenerator:
     def __init__(
         self, maze: Maze, entry: tuple[int, int], exit: tuple[int, int]
@@ -87,6 +86,17 @@ class MazeGenerator:
 
     # DFS algorithm to open the walls and create perfect maze
     def generate(self) -> None:
+        """Generate a perfect maze using an iterative Depth-First Search (DFS) algorithm.
+
+        Iterates through the grid using recursive backtracking:
+        1. Selects a random unvisited neighbor from the current cell.
+        2. Carves a passage between them by clearing wall bits.
+        3. Pushes the neighbor onto the stack and marks it as visited.
+        4. Backtracks by popping the stack when a dead end is reached.
+
+        Modifies `self.maze` in-place. Returns None.
+        """
+
         while self.stack:
             curr_x, curr_y = self.stack[-1]
             neighbors = []
@@ -108,7 +118,11 @@ class MazeGenerator:
                     neighbors
                 )
 
+                # Carve a two-way passage by removing walls from both adjacent cells:
+                # 1. '~curr_bit' creates a bitmask where all bits are 1 except the targeted wall bit (0).
+                # 2. '&=' applies bitwise AND to clear (set to 0) that specific wall bit on the current cell.
                 self.maze.cells[(curr_x, curr_y)] &= ~curr_bit
+                # 3. Repeat for the neighbor cell using 'n_bit' to open the matching opposite wall.
                 self.maze.cells[(neighbor_x, neighbor_y)] &= ~n_bit
 
                 self.visited.add((neighbor_x, neighbor_y))
