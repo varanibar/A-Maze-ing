@@ -109,11 +109,11 @@ def run_maze_screen(
         selection = maze_menu_win.navigate_menu()
 
         if selection == "Solve":
-            maze_win.draw_solution()
+            maze_win.draw_solution(0.05)
             continue
 
         elif selection == "Clear":
-            maze_win.redraw()
+            maze_win.clear()
             continue
 
         elif selection == "Regenerate":

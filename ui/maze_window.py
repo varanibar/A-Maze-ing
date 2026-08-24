@@ -33,6 +33,7 @@ class MazeWindow():
                                                                 screen
                                                                 )
         self.color_style = curses.color_pair(1)
+        self.is_path_drawn = False
         self._create_window()
         self._print_maze()
         self._print_entry_exit()
@@ -42,6 +43,12 @@ class MazeWindow():
         self._print_maze()
         self._print_entry_exit()
         self._print_42()
+        if self.is_path_drawn == True:
+            self.draw_solution(0)
+
+    def clear(self) -> None:
+        self.is_path_drawn = False
+        self.redraw()
 
     @classmethod
     def calculate_size(
@@ -181,7 +188,8 @@ class MazeWindow():
         self.window.refresh()
 
 
-    def draw_solution(self) -> None:
+    def draw_solution(self, timer: float) -> None:
+        self.is_path_drawn = True
         stack = self.state.solver.stack
         path = stack.copy()
 
@@ -220,7 +228,7 @@ class MazeWindow():
                 self._print_entry_exit()
 
             self.window.refresh()
-            time.sleep(0.05)
+            time.sleep(timer)
             i+=1
 
         self._print_entry_exit()
