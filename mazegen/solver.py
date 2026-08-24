@@ -14,27 +14,37 @@ class MazeSolver:
         self.height = builder.maze.height
         self.width = builder.maze.width
         self.visited: set[tuple[int, int]] = {self.entry}
-        self.stack: list[tuple[int, int]] = [self.entry]
+        self.stack: list[tuple[int, int]] = []
         self.path: dict[tuple[int, int], str] = {}
+        self.queue: list[tuple[int, int]] = [self.entry]
+        self.came_from: dict[
+                            tuple[int, int],
+                            tuple[tuple[int, int], str]
+                            ] = {}
 
-        while self.stack:
-            current_cell = self.stack[-1]
-            if current_cell == self.exit:
-                break
+        while self.queue:
+            current_cell = self.queue.pop(0)
             available_neighbors = self._get_neighbors(current_cell)
             if available_neighbors:
-                neighbors = list(available_neighbors.keys())
-                if self.exit in neighbors:
-                    next_cell = self.exit
-                else:
-                    next_cell = neighbors[0]
-                direction = available_neighbors[next_cell]
-                self.path[current_cell] = direction
-                self.visited.add(next_cell)
-                self.stack.append(next_cell)
-            else:
-                self.stack.pop()
-                self.path.popitem()
+                for (neighbor, direction) in available_neighbors.items():
+                    self.came_from[neighbor] = (current_cell, direction)
+                    self.visited.add(neighbor)
+                    self.queue.append(neighbor)
+
+        current_cell = self.exit
+        self.stack = [current_cell]
+
+        while current_cell != self.entry:
+            current_cell = self.came_from[current_cell][0]
+            self.stack.append(current_cell)
+
+        self.stack.reverse()
+
+        for current_cell in self.stack[1:]:
+            previous_cell = self.came_from[current_cell][0]
+            direction = self.came_from[current_cell][1]
+            self.path[previous_cell] = direction
+
 
     def _is_not_visited(self, neighbor: tuple[int, int]) -> bool:
         if neighbor in self.visited:
