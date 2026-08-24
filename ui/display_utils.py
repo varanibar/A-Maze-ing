@@ -92,6 +92,10 @@ def initialize_colors(
         curses.init_pair(7, 14, 10)
         curses.init_pair(8, 15, 10)
         curses.init_pair(9, 16, 10)
+        # Entry colors
+        curses.init_pair(4, 10, 16)
+        # Exit colors
+        curses.init_pair(5, 10, 16)
 
     else:
         curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_BLACK)

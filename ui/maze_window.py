@@ -151,7 +151,7 @@ class MazeWindow():
         """Draw the maze entry and exit markers at their cell positions."""
 
         y_axis_path = self.CELL_H
-        x_axis_path = self.CELL_W - 1
+        x_axis_path = self.CELL_W
 
         self.entry_x, self.entry_y = self.state.config_data.maze_entry
         self.exit_x, self.exit_y = self.state.config_data.maze_exit
@@ -164,13 +164,13 @@ class MazeWindow():
 
         self.window.addstr(y_maze_entry,
                            x_maze_entry,
-                           "^-^",
-                           curses.color_pair(2)
+                           "O",
+                           curses.color_pair(4) | curses.A_BOLD
                            )
         self.window.addstr(y_maze_exit,
                            x_maze_exit,
-                           "T^T",
-                           curses.color_pair(2)
+                           "X",
+                           curses.color_pair(5) | curses.A_BOLD
                            )
         self.window.refresh()
 
@@ -183,7 +183,7 @@ class MazeWindow():
 
         for cell in pattern:
             y = (cell[1] + 1) * self.CELL_H
-            x = (cell[0] + 1) * self.CELL_W - 1
+            x = (cell[0] + 1) * self.CELL_W - self.CELL_W//4
             self.window.addstr(y, x, "   ", curses.color_pair(2))
         self.window.refresh()
 
