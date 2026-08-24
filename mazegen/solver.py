@@ -15,23 +15,26 @@ class MazeSolver:
         self.width = builder.maze.width
         self.visited: set[tuple[int, int]] = {self.entry}
         self.stack: list[tuple[int, int]] = [self.entry]
+        self.path: dict[tuple[int, int], str] = {}
 
         while self.stack:
             current_cell = self.stack[-1]
             if current_cell == self.exit:
                 break
             available_neighbors = self._get_neighbors(current_cell)
-
             if available_neighbors:
-                if self.exit in available_neighbors:
+                neighbors = list(available_neighbors.keys())
+                if self.exit in neighbors:
                     next_cell = self.exit
                 else:
-                    next_cell = available_neighbors [0]
+                    next_cell = neighbors[0]
+                direction = available_neighbors[next_cell]
+                self.path[current_cell] = direction
                 self.visited.add(next_cell)
                 self.stack.append(next_cell)
             else:
                 self.stack.pop()
-
+                self.path.popitem()
 
     def _is_not_visited(self, neighbor: tuple[int, int]) -> bool:
         if neighbor in self.visited:
@@ -60,21 +63,22 @@ class MazeSolver:
         return False
 
 
-    def _get_neighbors(self, current_cell: tuple[int, int]) -> list[tuple[int, int]]:
+    def _get_neighbors(self, current_cell: tuple[int, int]) -> dict[tuple[int, int], str]:
         key = current_cell
         value = self.cells[key]
         x = current_cell[0]
         y = current_cell[1]
-        available_neighbors = []
+        available_neighbors = {}
 
-        left = (value >> 3, -1, 0)
-        down = ((value >> 2) % 2, 0, 1)
-        right = ((value >> 1) % 2, 1, 0)
-        up = (value % 2, 0, -1)
-        moves = [left, down, right, up]
+        west = ("W", value >> 3, -1, 0)
+        south = ("S", (value >> 2) % 2, 0, 1)
+        east = ("E", (value >> 1) % 2, 1, 0)
+        north = ("N", value % 2, 0, -1)
+        directions = [west, south, east, north]
 
-        for (wall, dx, dy) in moves:
+        for (name, wall, dx, dy) in directions:
             neighbor: tuple[int,int]= (x + dx, y + dy)
+            direction = name
             if self._is_available(wall, neighbor):
-                available_neighbors.append(neighbor)
+                available_neighbors[neighbor] = direction
         return available_neighbors
