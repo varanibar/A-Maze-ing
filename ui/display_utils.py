@@ -160,6 +160,13 @@ def draw_maze_coordinates(
         if cell % step == 0:
             screen.addstr(start_y + row, right + 1, str(cell))
 
+    seed = maze_win.state.generator.seed
+    random_seed = maze_win.state.generator.random_seed
+
+    if seed is not None:
+        screen.addstr(start_y + row + 3, left + 1, "Seed: " + str(seed))
+    elif random_seed is not None:
+        screen.addstr(start_y + row + 3, left + 1, "Random seed: " + str(random_seed))
     screen.refresh()
 
 

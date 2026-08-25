@@ -65,42 +65,44 @@ The core generation logic is isolated inside the mazegen package as a standalone
 
 ### 1. Instantiate and Generate a Basic Maze
 ```python
-from mazegen import Maze, MazeGenerator
+from mazegen import MazeGenerator
 
-# Initialize the grid with width and height
-grid = Maze(width=21, height=11)
+gen = MazeGenerator(width=12, height=12)
+gen.generate()
 
-# Pass entry and exit points to the generator
-builder = MazeGenerator(grid, maze_entry=(0, 0), maze_exit=(20, 10))
-
-# Run the generation algorithm
-builder.generate()
+# Print the ASCII string to your terminal
+print(gen.render())
 
 ```
 
 ### 2. Custom Parameters (Seed & Imperfect Mazes)
 ```Python
-import random
+from mazegen import MazeGenerator
 
-# Set a seed for reproducible generation
-random.seed(42)
-
-# Optional: add loops/multiple paths to make the maze non-perfect
-builder.make_imperfect()
+# Create a reproducible, imperfect maze (contains loops and multiple paths)
+gen = MazeGenerator(
+    width=15,
+    height=15,
+    seed=42,         # Set seed for reproducible generation
+    perfect=False    # Set to False to allow extra open paths/loops
+)
+gen.generate()
 
 ```
 
 ### 3. Access Structure & Solution
 
 ```python
-# Render the maze string
-maze_string = grid.render()
+from mazegen import MazeGenerator
 
-# Access the raw hex grid structure
-hex_grid = grid.to_hex_grid()
+gen = MazeGenerator(width=12, height=12)
+gen.generate()
 
-# Access the solution path from entry to exit
-solution_path = builder.get_solution()
+# Print maze with entry, exit, and path overlay
+print(gen.render(show_solution=True))
+
+# Access the solution path string from entry to exit (e.g., "SSEEWW...")
+solution_path = gen.get_solution()
 
 ```
 

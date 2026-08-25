@@ -1,18 +1,42 @@
 import random
 import sys
-from mazegen.maze import Maze
+from .maze import Maze
+from .solver import MazeSolver
 
 
 class MazeGenerator:
     def __init__(
-        self, maze: Maze, entry: tuple[int, int], exit: tuple[int, int]
+        self,
+        width: int,
+        height: int,
+        maze_entry: tuple[int, int] = (0, 0),
+        maze_exit: tuple[int, int] | None = None,
+        seed: int | None = None,
+        perfect: bool = True
     ) -> None:
-        self.maze = maze
-        self.entry = entry
-        self.exit = exit
+        if seed is not None:
+            random.seed(seed)
+            self.seed = seed
+            self.random_seed = None
+        elif seed is None:
+            random_seed = random.randint(0,10000000000000000)
+            random.seed(random_seed)
+            self.seed = None
+            self.random_seed = random_seed
+
+        self.width = width
+        self.height = height
+        self.entry = maze_entry
+        self.exit = maze_exit if maze_exit is not None else (width - 1, height - 1)
+        self.perfect = perfect
+
+        self.maze = Maze(width, height)
+
         self.reserved_cells = self._get_42_cells()
-        self.visited: set[tuple[int, int]] = {entry}
-        self.stack: list[tuple[int, int]] = [entry]
+
+        self.visited: set[tuple[int, int]] = {self.entry}
+        self.stack: list[tuple[int, int]] = [self.entry]
+
         self.ways = {
             "N": (0, -1, 1, 4),
             "E": (1, 0, 2, 8),
@@ -84,18 +108,8 @@ class MazeGenerator:
 
         return reserved
 
-    # DFS algorithm to open the walls and create perfect maze
     def generate(self) -> None:
-        """Generate a perfect maze using an iterative Depth-First Search (DFS) algorithm.
-
-        Iterates through the grid using recursive backtracking:
-        1. Selects a random unvisited neighbor from the current cell.
-        2. Carves a passage between them by clearing wall bits.
-        3. Pushes the neighbor onto the stack and marks it as visited.
-        4. Backtracks by popping the stack when a dead end is reached.
-
-        Modifies `self.maze` in-place. Returns None.
-        """
+        """Run DFS generation and apply imperfection if configured."""
 
         while self.stack:
             curr_x, curr_y = self.stack[-1]
@@ -130,6 +144,32 @@ class MazeGenerator:
 
             else:
                 self.stack.pop()
+
+        if not self.perfect:
+            self.make_imperfect()
+
+        self.solver = MazeSolver(self)
+
+    def get_solution(self) -> str:
+        """Return solution path string using internal solver."""
+        return "".join(self.solver.path.values())
+
+    def render(self, show_solution: bool = False) -> str:
+        """Delegate visual rendering to internal maze grid."""
+        path_cells = None
+        if show_solution:
+            path_cells = set(self.solver.path.keys())
+            path_cells.add(self.exit)
+
+        return self.maze.render(
+            path_cells=path_cells,
+            entry=self.entry,
+            exit=self.exit,
+        )
+
+    def to_hex_grid(self) -> str:
+        """Delegate hex grid generation to internal maze grid."""
+        return self.maze.to_hex_grid()
 
     def make_imperfect(self) -> None:
         self._open_key_locations()

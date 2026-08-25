@@ -1,11 +1,7 @@
-# Project modules
-from mazegen.generator import MazeGenerator
-
-
 class MazeSolver:
     def __init__(
                 self,
-                builder: MazeGenerator
+                builder: 'MazeGenerator'
                 ) -> None:
 
         self.cells = builder.maze.cells
@@ -44,7 +40,6 @@ class MazeSolver:
             previous_cell = self.came_from[current_cell][0]
             direction = self.came_from[current_cell][1]
             self.path[previous_cell] = direction
-
 
     def _is_not_visited(self, neighbor: tuple[int, int]) -> bool:
         if neighbor in self.visited:

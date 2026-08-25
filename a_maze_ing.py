@@ -23,11 +23,8 @@ def main() -> None:
     config_file = sys.argv[1]
 
     try:
-
         state = build_maze(config_file)
-
         start_display(state)
-
     except FileNotFoundError:
         print(f"Error: File '{config_file}' not found.", file=sys.stderr)
         sys.exit(0)
@@ -38,9 +35,9 @@ def main() -> None:
     except ValueError as err:
         print(f"Configuration Error: {err}", file=sys.stderr)
         sys.exit(0)
-    # except Exception as err:
-    #     print(f"Unexpected error: {err}", file=sys.stderr)
-    #     sys.exit(0)
+    except Exception as err:
+        print(f"Unexpected error: {err}", file=sys.stderr)
+        sys.exit(0)
 
 
 if __name__ == "__main__":

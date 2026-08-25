@@ -1,38 +1,30 @@
-# Built-in modules
 import random
-
-# Project modules
 from dataclasses import dataclass
 from parser import Config, parse_config
-from mazegen import Maze, MazeGenerator, MazeSolver
+from mazegen import MazeGenerator
+
 
 @dataclass
 class MazeState:
     """Store the current maze, its configuration, and rendered form."""
+
     config_file: str
     config_data: Config
     maze_string: str
-    maze: Maze
-    solver: MazeSolver
+    generator: MazeGenerator
     reserved_cells: set[tuple[int, int]]
-
-
-'''
-Moved the write file workflow out of a_maze_ing.py so it can be
-reused both at startup and when regenerating a maze from the UI.
-'''
+    solver: object
+    maze: object
 
 
 def write_output_file(
-                    file_path: str,
-                    maze: Maze,
-                    maze_entry: tuple[int, int],
-                    maze_exit: tuple[int, int],
-                    path: str = "",
-                    ) -> None:
-
-    hex_grid = maze.to_hex_grid()
-
+    file_path: str,
+    hex_grid: str,
+    maze_entry: tuple[int, int],
+    maze_exit: tuple[int, int],
+    path: str,
+) -> None:
+    """Write the generated maze data and solution path to the output file."""
     lines = [
         hex_grid,
         "",
@@ -45,54 +37,40 @@ def write_output_file(
         file.write("\n".join(lines))
 
 
-'''
-Moved the maze-building workflow out of a_maze_ing.py so it can be
-reused both at startup and when regenerating a maze from the UI.
-'''
-
-
 def build_maze(config_file: str) -> MazeState:
-    """Parse the configuration, generate a maze, and return its state."""
-
+    """Parse configuration, generate a maze using MazeGenerator, and save output."""
     config_data = parse_config(config_file)
 
-    if config_data.seed is not None:
-        random.seed(config_data.seed)
-
-    grid = Maze(config_data.width, config_data.height)
-    builder = MazeGenerator(
-        grid,
-        config_data.maze_entry,
-        config_data.maze_exit
+    generator = MazeGenerator(
+        width=config_data.width,
+        height=config_data.height,
+        maze_entry=config_data.maze_entry,
+        maze_exit=config_data.maze_exit,
+        seed=config_data.seed,
+        perfect=config_data.perfect,
     )
 
-    builder.generate()
+    generator.generate()
 
-    if not config_data.perfect:
-        builder.make_imperfect()
-
-    solver = MazeSolver(builder)
-
-    maze_string = grid.render()
-    
     write_output_file(
-                    config_data.output_file,
-                    grid,
-                    config_data.maze_entry,
-                    config_data.maze_exit,
-                    ""
-                    )
+        file_path=config_data.output_file,
+        hex_grid=generator.to_hex_grid(),
+        maze_entry=config_data.maze_entry,
+        maze_exit=config_data.maze_exit,
+        path=generator.get_solution(),
+    )
 
     return MazeState(
-            config_file=config_file,
-            config_data=config_data,
-            maze_string=maze_string,
-            maze=grid,
-            solver = solver,
-            reserved_cells=builder.reserved_cells
-            )
+        config_file=config_file,
+        config_data=config_data,
+        maze_string=generator.render(),
+        generator=generator,
+        reserved_cells=generator.reserved_cells,
+        solver=generator.solver,
+        maze=generator.maze,
+    )
 
 
 def regenerate_maze(state: MazeState) -> MazeState:
-    new_state = build_maze(state.config_file)
-    return new_state
+    """Regenerate a new maze using the stored configuration file."""
+    return build_maze(state.config_file)
