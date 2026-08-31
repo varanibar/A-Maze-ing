@@ -2,35 +2,45 @@ import random
 import sys
 from .maze import Maze
 from .solver import MazeSolver
-
+from typing import Any
+from math import sqrt
 
 class MazeGenerator:
     def __init__(
         self,
-        width: int,
-        height: int,
+        width: int | None = None,
+        height: int | None = None,
         maze_entry: tuple[int, int] = (0, 0),
         maze_exit: tuple[int, int] | None = None,
         seed: int | None = None,
         perfect: bool = True
-    ) -> None:
+        ) -> None:
+
+        try:
+            self._parse_input(
+                width,
+                height,
+                maze_entry,
+                maze_exit,
+                seed,
+                perfect
+                )
+
+        except Exception as err:
+            print(f"Parsing error ({err.__class__.__name__}): {err}")
+            return
+
         if seed is not None:
             random.seed(seed)
             self.seed = seed
-            self.random_seed = None
+            self.random_seed = -1
         elif seed is None:
             random_seed = random.randint(0,10000000000000000)
             random.seed(random_seed)
-            self.seed = None
+            self.seed = -1
             self.random_seed = random_seed
 
-        self.width = width
-        self.height = height
-        self.entry = maze_entry
-        self.exit = maze_exit if maze_exit is not None else (width - 1, height - 1)
-        self.perfect = perfect
-
-        self.maze = Maze(width, height)
+        self.maze = Maze(self.width, self.height)
 
         self.reserved_cells = self._get_42_cells()
 
@@ -46,6 +56,131 @@ class MazeGenerator:
 
         for x, y in self.reserved_cells:
             self.visited.add((x, y))
+
+
+    def _parse_input(
+                    self,
+                    raw_width: int | None,
+                    raw_height: int | None,
+                    raw_entry: tuple[int, int],
+                    raw_exit: tuple[int, int] | None,
+                    raw_seed: int | None,
+                    raw_perfect: bool = True
+                    ) -> None:
+
+        # WIDTH / HEIGHT
+        if raw_width is None or raw_height is None:
+            raise TypeError(
+                "Missing required positional arguments: 'width', 'height'"
+                )
+
+        try:
+            width = int(raw_width)
+            height = int(raw_height)
+        except ValueError:
+            raise ValueError(
+                "WIDTH and HEIGHT must be valid integers."
+                )
+
+        if width <= 1 or height <= 1:
+            raise ValueError(
+                "WIDTH and HEIGHT must be greater than 1."
+                )
+
+        self.width = width
+        self.height = height
+
+        # ENTRY
+        if not isinstance(raw_entry, tuple) or len(raw_entry) != 2:
+            raise ValueError(
+                "ENTRY must be formated as (x, y)"
+                )
+
+        try:
+            x_entry = int(raw_entry[0])
+            y_entry = int(raw_entry[1])
+        except (TypeError, ValueError):
+            raise ValueError(
+                "ENTRY must be valid integers in format: (x, y)"
+                )
+
+        # EXIT
+        if raw_exit is None:
+            x_exit = width - 1
+            y_exit = height - 1
+        else:
+            if not isinstance(raw_exit, tuple) or len(raw_exit) != 2:
+                raise ValueError(
+                    "EXIT must be formated as (x, y)"
+                    )
+
+            try:
+                x_exit = int(raw_exit[0])
+                y_exit = int(raw_exit[1])
+            except (TypeError, ValueError):
+                raise ValueError(
+                    "EXIT must be valid integers in format: (x, y)"
+                    )
+
+        # COORDINATES VALIDATION
+        if x_entry < 0 or y_entry < 0:
+            raise ValueError(
+                "ENTRY coordinates must be positive integers."
+                )
+        if x_exit < 0 or y_exit < 0:
+            raise ValueError(
+                "EXIT coordinates must be positive integers."
+                )
+
+        if not (
+            0 <= x_entry < self.width
+            and 0 <= y_entry < self.height
+            ):
+            raise ValueError(
+                "ENTRY coordinates is out of grid bounds."
+                )
+
+        if not (
+            0 <= x_exit < self.width
+            and 0 <= y_exit < self.height
+            ):
+            raise ValueError(
+                "EXIT coordinates is out of grid bounds."
+                )
+
+        self.entry = (x_entry, y_entry)
+        self.exit = (x_exit, y_exit)
+
+        if self.entry == self.exit:
+            raise ValueError(
+                "ENTRY and EXIT coordinates cannot be identical"
+                )
+
+        if raw_seed is not None:
+            try:
+                seed = int(raw_seed)
+            except ValueError:
+                raise ValueError(
+                    "SEED must be a valid integer"
+                    )
+            if seed < 0:
+                raise ValueError(
+                    "SEED must be a positive integer"
+                    )
+
+            self.seed = seed
+        else:
+            self.seed = None
+
+        # PERFECT
+        if isinstance(raw_perfect, bool):
+            self.perfect = raw_perfect
+
+        else:
+            raise ValueError(
+                "PERFECT must be True or False."
+            )
+
 
     def _get_42_cells(self) -> set[tuple[int, int]]:
         """Returns the set of (x, y) coordinates forming the '42' logo.
